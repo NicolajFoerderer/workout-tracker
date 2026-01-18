@@ -171,7 +171,7 @@ export function LogWorkout() {
   }
 
   return (
-    <div>
+    <div className="pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">{template.name}</h1>
@@ -270,7 +270,8 @@ export function LogWorkout() {
         ))}
       </div>
 
-      <div className="mt-8 sticky bottom-20 bg-[#0a0a0b]/80 backdrop-blur-lg py-4">
+      <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 bg-[#0a0a0b]/80 backdrop-blur-lg py-3 px-4">
+        <div className="max-w-lg mx-auto">
         <button
           onClick={handleSave}
           disabled={saving}
@@ -278,6 +279,7 @@ export function LogWorkout() {
         >
           {saving ? 'Saving...' : 'Save Workout'}
         </button>
+        </div>
       </div>
     </div>
   );
