@@ -160,13 +160,13 @@ export function LogWorkout() {
 
   if (loading) {
     return (
-      <div className="text-center py-8 text-gray-500">Loading template...</div>
+      <div className="text-center py-8 text-zinc-500">Loading template...</div>
     );
   }
 
   if (!template) {
     return (
-      <div className="text-center py-8 text-gray-500">Template not found</div>
+      <div className="text-center py-8 text-zinc-500">Template not found</div>
     );
   }
 
@@ -174,38 +174,38 @@ export function LogWorkout() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{template.name}</h1>
+          <h1 className="text-2xl font-bold text-white">{template.name}</h1>
           <input
             type="date"
             value={workoutDate}
             onChange={(e) => setWorkoutDate(e.target.value)}
-            className="text-sm text-gray-600 border border-gray-300 rounded px-2 py-1 mt-1"
+            className="text-sm text-zinc-300 bg-[#1c1c1f] border border-zinc-700 rounded-lg px-2 py-1 mt-1"
           />
         </div>
         <button
           onClick={() => navigate('/')}
-          className="text-gray-500 hover:text-gray-700"
+          className="text-zinc-500 hover:text-white transition-colors"
         >
           Cancel
         </button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {exerciseInputs.map((exercise, exerciseIndex) => (
           <div
             key={exerciseIndex}
-            className="bg-white rounded-lg border border-gray-200 p-4"
+            className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4"
           >
             <div className="mb-3">
-              <h3 className="font-medium text-gray-900">{exercise.exerciseName}</h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="font-medium text-white">{exercise.exerciseName}</h3>
+              <p className="text-sm text-zinc-500">
                 Target: {exercise.targetSets} x {exercise.targetReps}
                 {exercise.targetRir !== undefined && ` @ RIR ${exercise.targetRir}`}
               </p>
             </div>
 
             <div className="space-y-2">
-              <div className="grid grid-cols-12 gap-2 text-xs text-gray-500 font-medium">
+              <div className="grid grid-cols-12 gap-2 text-xs text-zinc-500 font-medium">
                 <div className="col-span-2">Set</div>
                 {exercise.tracking === 'load_reps' && (
                   <div className="col-span-4">Weight (kg)</div>
@@ -218,7 +218,7 @@ export function LogWorkout() {
 
               {exercise.sets.map((set, setIndex) => (
                 <div key={setIndex} className="grid grid-cols-12 gap-2 items-center">
-                  <div className="col-span-2 text-sm text-gray-600 font-medium">
+                  <div className="col-span-2 text-sm text-zinc-400 font-medium">
                     {setIndex + 1}
                   </div>
                   {exercise.tracking === 'load_reps' && (
@@ -230,7 +230,7 @@ export function LogWorkout() {
                         onChange={(e) =>
                           handleSetChange(exerciseIndex, setIndex, 'weight', e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white text-sm focus:outline-none focus:border-zinc-600 transition-colors"
                         placeholder="0"
                       />
                     </div>
@@ -243,14 +243,14 @@ export function LogWorkout() {
                       onChange={(e) =>
                         handleSetChange(exerciseIndex, setIndex, 'reps', e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white text-sm focus:outline-none focus:border-zinc-600 transition-colors"
                       placeholder="0"
                     />
                   </div>
                   <div className="col-span-2">
                     <button
                       onClick={() => removeSet(exerciseIndex, setIndex)}
-                      className="text-red-500 hover:text-red-700 text-sm px-2"
+                      className="text-zinc-600 hover:text-red-400 text-sm px-2 transition-colors disabled:opacity-30"
                       disabled={exercise.sets.length <= 1}
                     >
                       ×
@@ -262,7 +262,7 @@ export function LogWorkout() {
 
             <button
               onClick={() => addSet(exerciseIndex)}
-              className="mt-3 text-sm text-blue-600 hover:text-blue-800"
+              className="mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors"
             >
               + Add Set
             </button>
@@ -270,11 +270,11 @@ export function LogWorkout() {
         ))}
       </div>
 
-      <div className="mt-8 sticky bottom-20 bg-gray-50 py-4">
+      <div className="mt-8 sticky bottom-20 bg-[#0a0a0b]/80 backdrop-blur-lg py-4">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+          className="w-full bg-white text-black py-3 px-4 rounded-xl font-medium hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 transition-colors"
         >
           {saving ? 'Saving...' : 'Save Workout'}
         </button>

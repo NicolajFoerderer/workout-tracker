@@ -70,35 +70,34 @@ export function History() {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
     });
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    return <div className="text-center py-8 text-zinc-500">Loading...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Workout History</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">History</h1>
 
       {logs.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-zinc-500">
           <p className="mb-4">No workouts logged yet.</p>
-          <Link to="/" className="text-blue-600 hover:underline">
+          <Link to="/" className="text-blue-400 hover:text-blue-300">
             Start your first workout
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {logs.map((log) => (
             <div
               key={log.id}
-              className="bg-white rounded-lg border border-gray-200 p-4"
+              className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4"
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-medium text-gray-900">
+                  <h3 className="font-semibold text-white">
                     {log.template_name_snapshot}
                   </h3>
                   {editingDateId === log.id ? (
@@ -114,11 +113,11 @@ export function History() {
                         }
                       }}
                       autoFocus
-                      className="text-sm text-gray-600 border border-gray-300 rounded px-2 py-1"
+                      className="text-sm text-zinc-300 bg-[#1c1c1f] border border-zinc-700 rounded-lg px-2 py-1 mt-1"
                     />
                   ) : (
                     <p
-                      className="text-sm text-gray-500 cursor-pointer hover:text-blue-600"
+                      className="text-sm text-zinc-500 cursor-pointer hover:text-zinc-300 mt-1"
                       onClick={() => setEditingDateId(log.id)}
                     >
                       {formatDate(log.date)}
@@ -127,13 +126,13 @@ export function History() {
                 </div>
                 <button
                   onClick={() => handleDelete(log.id)}
-                  className="text-red-500 hover:text-red-700 text-sm"
+                  className="text-zinc-600 hover:text-red-400 text-sm transition-colors"
                 >
                   Delete
                 </button>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {log.items?.map((item, index) => {
                   const sets = Array.isArray(item.sets) ? item.sets : [];
                   const setsWithData = sets.filter(
@@ -143,16 +142,16 @@ export function History() {
 
                   return (
                     <div key={index} className="text-sm">
-                      <span className="font-medium text-gray-700">
-                        {item.exercise_name_snapshot}:
-                      </span>{' '}
-                      <span className="text-gray-600">
+                      <span className="text-zinc-300">
+                        {item.exercise_name_snapshot}
+                      </span>
+                      <span className="text-zinc-600 ml-2">
                         {setsWithData.map((set) => {
                           if (item.tracking === 'reps_only') {
-                            return `${set.reps} reps`;
+                            return `${set.reps}`;
                           }
-                          return `${set.weight}kg × ${set.reps}`;
-                        }).join(', ')}
+                          return `${set.weight}×${set.reps}`;
+                        }).join(' · ')}
                       </span>
                     </div>
                   );

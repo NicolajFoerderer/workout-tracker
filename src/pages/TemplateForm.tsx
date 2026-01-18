@@ -183,41 +183,41 @@ export function TemplateForm() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    return <div className="text-center py-8 text-zinc-500">Loading...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">
+      <h1 className="text-2xl font-bold text-white mb-6">
         {isEditing ? 'Edit Template' : 'New Template'}
       </h1>
 
       <form onSubmit={handleSubmit}>
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+        <div className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4 mb-6">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-400 mb-1">
                 Template Name
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
                 placeholder="e.g., Push Day"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-400 mb-1">
                 Description (optional)
               </label>
               <input
                 type="text"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
                 placeholder="e.g., Upper body push focus"
               />
             </div>
@@ -225,11 +225,11 @@ export function TemplateForm() {
         </div>
 
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Exercises</h2>
+          <h2 className="text-lg font-semibold text-white">Exercises</h2>
           <button
             type="button"
             onClick={addItem}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
           >
             + Add Exercise
           </button>
@@ -239,10 +239,10 @@ export function TemplateForm() {
           {items.map((item, index) => (
             <div
               key={item.id}
-              className="bg-white rounded-lg border border-gray-200 p-4"
+              className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-500">
+                <span className="text-sm font-medium text-zinc-500">
                   Exercise {index + 1}
                 </span>
                 <div className="flex gap-2">
@@ -250,7 +250,7 @@ export function TemplateForm() {
                     type="button"
                     onClick={() => moveItem(index, 'up')}
                     disabled={index === 0}
-                    className="text-gray-500 hover:text-gray-700 disabled:opacity-30"
+                    className="text-zinc-500 hover:text-white disabled:opacity-30 transition-colors"
                   >
                     ↑
                   </button>
@@ -258,14 +258,14 @@ export function TemplateForm() {
                     type="button"
                     onClick={() => moveItem(index, 'down')}
                     disabled={index === items.length - 1}
-                    className="text-gray-500 hover:text-gray-700 disabled:opacity-30"
+                    className="text-zinc-500 hover:text-white disabled:opacity-30 transition-colors"
                   >
                     ↓
                   </button>
                   <button
                     type="button"
                     onClick={() => removeItem(index)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-zinc-600 hover:text-red-400 transition-colors"
                   >
                     ×
                   </button>
@@ -274,13 +274,13 @@ export function TemplateForm() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-400 mb-1">
                     Exercise
                   </label>
                   <select
                     value={item.exerciseId}
                     onChange={(e) => updateItem(index, 'exerciseId', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-600 transition-colors"
                   >
                     {exercises.map((ex) => (
                       <option key={ex.id} value={ex.id}>
@@ -292,38 +292,38 @@ export function TemplateForm() {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-zinc-400 mb-1">
                       Sets
                     </label>
                     <input
                       type="number"
                       value={item.targetSets}
                       onChange={(e) => updateItem(index, 'targetSets', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-600 transition-colors"
                       min="1"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-zinc-400 mb-1">
                       Reps
                     </label>
                     <input
                       type="text"
                       value={item.targetReps}
                       onChange={(e) => updateItem(index, 'targetReps', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
                       placeholder="e.g., 8-12"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-zinc-400 mb-1">
                       RIR
                     </label>
                     <input
                       type="number"
                       value={item.targetRir}
                       onChange={(e) => updateItem(index, 'targetRir', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
                       min="0"
                       placeholder="opt."
                     />
@@ -334,12 +334,12 @@ export function TemplateForm() {
           ))}
 
           {items.length === 0 && (
-            <div className="text-center py-8 text-gray-500 bg-white rounded-lg border border-gray-200">
+            <div className="text-center py-8 text-zinc-500 bg-[#141416] rounded-2xl border border-zinc-800/50">
               <p>No exercises added yet.</p>
               <button
                 type="button"
                 onClick={addItem}
-                className="text-blue-600 hover:underline mt-2"
+                className="text-blue-400 hover:text-blue-300 mt-2 transition-colors"
               >
                 Add your first exercise
               </button>
@@ -350,14 +350,14 @@ export function TemplateForm() {
         <div className="flex gap-3">
           <button
             type="submit"
-            className="flex-1 bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700"
+            className="flex-1 bg-white text-black py-3 rounded-xl font-medium hover:bg-zinc-200 transition-colors"
           >
             {isEditing ? 'Save Changes' : 'Create Template'}
           </button>
           <button
             type="button"
             onClick={() => navigate('/templates')}
-            className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300"
+            className="flex-1 bg-zinc-800 text-zinc-300 py-3 rounded-xl font-medium hover:bg-zinc-700 transition-colors"
           >
             Cancel
           </button>

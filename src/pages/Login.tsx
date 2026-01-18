@@ -25,18 +25,18 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Workout Tracker</h1>
-          <p className="text-gray-600 mt-2">Sign in to track your workouts</p>
+    <div className="min-h-screen bg-[#0a0a0b] flex items-center justify-center px-4">
+      <div className="max-w-sm w-full">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-bold text-white tracking-tight">Workout</h1>
+          <p className="text-zinc-500 mt-2">Track your progress</p>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email address
+              <label htmlFor="email" className="block text-sm font-medium text-zinc-400 mb-2">
+                Email
               </label>
               <input
                 id="email"
@@ -45,25 +45,25 @@ export function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-400 transition-colors"
+              className="w-full bg-white text-black py-3 px-4 rounded-xl font-medium hover:bg-zinc-200 disabled:bg-zinc-600 disabled:text-zinc-400 transition-colors"
             >
-              {loading ? 'Sending...' : 'Send Magic Link'}
+              {loading ? 'Sending...' : 'Continue with Email'}
             </button>
           </form>
 
           {message && (
             <div
-              className={`mt-4 p-3 rounded-lg text-sm ${
+              className={`mt-4 p-3 rounded-xl text-sm ${
                 message.type === 'success'
-                  ? 'bg-green-50 text-green-800 border border-green-200'
-                  : 'bg-red-50 text-red-800 border border-red-200'
+                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
               }`}
             >
               {message.text}
@@ -71,8 +71,8 @@ export function Login() {
           )}
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-4">
-          We'll send you a magic link to sign in - no password needed!
+        <p className="text-center text-sm text-zinc-600 mt-6">
+          We'll send you a magic link to sign in
         </p>
       </div>
     </div>

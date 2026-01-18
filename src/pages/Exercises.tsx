@@ -137,29 +137,29 @@ export function Exercises() {
     str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    return <div className="text-center py-8 text-zinc-500">Loading...</div>;
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Exercises</h1>
+        <h1 className="text-2xl font-bold text-white">Exercises</h1>
         <button
           onClick={() => setShowForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+          className="bg-white text-black px-4 py-2 rounded-xl text-sm font-medium hover:bg-zinc-200 transition-colors"
         >
           + Add
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4 mb-6">
+          <h2 className="text-lg font-semibold text-white mb-4">
             {editingExercise ? 'Edit Exercise' : 'New Exercise'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-400 mb-1">
                 Name
               </label>
               <input
@@ -168,7 +168,7 @@ export function Exercises() {
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
                 placeholder="e.g., Barbell Squat"
                 required
               />
@@ -176,7 +176,7 @@ export function Exercises() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-400 mb-1">
                   Category
                 </label>
                 <select
@@ -187,7 +187,7 @@ export function Exercises() {
                       category: e.target.value as ExerciseCategory,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-600 transition-colors"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
@@ -198,7 +198,7 @@ export function Exercises() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-400 mb-1">
                   Equipment
                 </label>
                 <select
@@ -209,7 +209,7 @@ export function Exercises() {
                       equipment: e.target.value as Equipment,
                     })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-600 transition-colors"
                 >
                   {equipmentList.map((eq) => (
                     <option key={eq} value={eq}>
@@ -221,7 +221,7 @@ export function Exercises() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-zinc-400 mb-1">
                 Tracking Type
               </label>
               <select
@@ -232,7 +232,7 @@ export function Exercises() {
                     default_tracking: e.target.value as TrackingType,
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white focus:outline-none focus:border-zinc-600 transition-colors"
               >
                 {trackingTypes.map((tt) => (
                   <option key={tt} value={tt}>
@@ -245,14 +245,14 @@ export function Exercises() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="flex-1 bg-blue-600 text-white py-2 rounded-md font-medium hover:bg-blue-700"
+                className="flex-1 bg-white text-black py-2 rounded-xl font-medium hover:bg-zinc-200 transition-colors"
               >
                 {editingExercise ? 'Update' : 'Create'}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
-                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-md font-medium hover:bg-gray-300"
+                className="flex-1 bg-zinc-800 text-zinc-300 py-2 rounded-xl font-medium hover:bg-zinc-700 transition-colors"
               >
                 Cancel
               </button>
@@ -267,7 +267,7 @@ export function Exercises() {
           placeholder="Search exercises..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-3 bg-[#141416] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
         />
       </div>
 
@@ -275,26 +275,26 @@ export function Exercises() {
         {filteredExercises.map((exercise) => (
           <div
             key={exercise.id}
-            className="bg-white rounded-lg border border-gray-200 p-4"
+            className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4"
           >
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-gray-900">{exercise.name}</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="font-medium text-white">{exercise.name}</h3>
+                <p className="text-sm text-zinc-500">
                   {formatLabel(exercise.category)} • {formatLabel(exercise.equipment)} •{' '}
                   {formatLabel(exercise.default_tracking)}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => handleEdit(exercise)}
-                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  className="text-zinc-500 hover:text-white text-sm transition-colors"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(exercise.id)}
-                  className="text-red-500 hover:text-red-700 text-sm"
+                  className="text-zinc-600 hover:text-red-400 text-sm transition-colors"
                 >
                   Delete
                 </button>
@@ -304,7 +304,7 @@ export function Exercises() {
         ))}
 
         {filteredExercises.length === 0 && searchQuery && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-zinc-500">
             No exercises match your search.
           </div>
         )}

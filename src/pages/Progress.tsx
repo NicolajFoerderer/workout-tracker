@@ -110,7 +110,6 @@ export function Progress() {
           }
         }
 
-        // Sort by latest date, most recent first
         progressList.sort((a, b) => b.latestDate.localeCompare(a.latestDate));
         setExerciseProgressList(progressList);
       } catch (error) {
@@ -133,12 +132,12 @@ export function Progress() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    return <div className="text-center py-8 text-zinc-500">Loading...</div>;
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Progress</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">Progress</h1>
 
       <div className="mb-6">
         <input
@@ -146,44 +145,49 @@ export function Progress() {
           placeholder="Search exercises..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-3 bg-[#141416] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
         />
       </div>
 
       {filteredProgress.length > 0 ? (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {filteredProgress.map((ep) => (
-            <div key={ep.exercise.id} className="bg-white rounded-lg border border-gray-200 p-4">
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            <div key={ep.exercise.id} className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4">
+              <h2 className="text-lg font-semibold text-white mb-1">
                 {ep.exercise.name}
               </h2>
 
               {ep.personalRecord && (
-                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm font-medium text-yellow-800">
-                    Personal Record: {ep.personalRecord.e1rmMax.toFixed(1)} kg e1RM
-                  </p>
-                  <p className="text-xs text-yellow-600">
-                    Set on {formatDate(ep.personalRecord.date)}
-                  </p>
-                </div>
+                <p className="text-sm text-zinc-500 mb-4">
+                  PR: <span className="text-green-400">{ep.personalRecord.e1rmMax.toFixed(1)} kg</span> e1RM
+                </p>
               )}
 
-              <div className="h-48">
+              <div className="h-40">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={ep.data}>
-                    <CartesianGrid strokeDasharray="3 3" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                     <XAxis
                       dataKey="date"
                       tickFormatter={formatDate}
-                      fontSize={12}
+                      fontSize={11}
+                      stroke="#52525b"
+                      tickLine={false}
                     />
                     <YAxis
                       domain={['dataMin - 5', 'dataMax + 5']}
-                      fontSize={12}
-                      tickFormatter={(value) => `${Number(value).toFixed(1)}kg`}
+                      fontSize={11}
+                      stroke="#52525b"
+                      tickLine={false}
+                      tickFormatter={(value) => `${Number(value).toFixed(0)}`}
                     />
                     <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#1c1c1f',
+                        border: '1px solid #27272a',
+                        borderRadius: '8px',
+                        color: '#fafafa',
+                      }}
                       labelFormatter={(label) => formatDate(label as string)}
                       formatter={(value) => [
                         `${(value as number).toFixed(1)} kg`,
@@ -195,8 +199,8 @@ export function Progress() {
                       dataKey="e1rmMax"
                       stroke="#3b82f6"
                       strokeWidth={2}
-                      dot={{ fill: '#3b82f6', strokeWidth: 2 }}
-                      activeDot={{ r: 6 }}
+                      dot={{ fill: '#3b82f6', strokeWidth: 0, r: 3 }}
+                      activeDot={{ r: 5, fill: '#3b82f6' }}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -205,7 +209,7 @@ export function Progress() {
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-12 text-zinc-500">
           <p>No progress data yet.</p>
           <p className="text-sm mt-2">
             Log some workouts to see your e1RM progression.

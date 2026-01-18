@@ -52,25 +52,25 @@ export function Templates() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-gray-500">Loading...</div>;
+    return <div className="text-center py-8 text-zinc-500">Loading...</div>;
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Templates</h1>
+        <h1 className="text-2xl font-bold text-white">Templates</h1>
         <button
           onClick={() => navigate('/templates/new')}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+          className="bg-white text-black px-4 py-2 rounded-xl text-sm font-medium hover:bg-zinc-200 transition-colors"
         >
           + New
         </button>
       </div>
 
       {templates.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-zinc-500">
           <p className="mb-4">No workout templates yet.</p>
-          <Link to="/templates/new" className="text-blue-600 hover:underline">
+          <Link to="/templates/new" className="text-blue-400 hover:text-blue-300">
             Create your first template
           </Link>
         </div>
@@ -79,25 +79,25 @@ export function Templates() {
           {templates.map((template) => (
             <div
               key={template.id}
-              className="bg-white rounded-lg border border-gray-200 p-4"
+              className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4"
             >
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h3 className="font-medium text-gray-900">{template.name}</h3>
+                  <h3 className="font-medium text-white">{template.name}</h3>
                   {template.description && (
-                    <p className="text-sm text-gray-500">{template.description}</p>
+                    <p className="text-sm text-zinc-500">{template.description}</p>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <button
                     onClick={() => navigate(`/templates/edit/${template.id}`)}
-                    className="text-blue-600 hover:text-blue-800 text-sm"
+                    className="text-zinc-500 hover:text-white text-sm transition-colors"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(template.id)}
-                    className="text-red-500 hover:text-red-700 text-sm"
+                    className="text-zinc-600 hover:text-red-400 text-sm transition-colors"
                   >
                     Delete
                   </button>
@@ -106,11 +106,11 @@ export function Templates() {
 
               <div className="space-y-1">
                 {template.items?.map((item, index) => (
-                  <div key={item.id} className="text-sm text-gray-600">
-                    <span className="text-gray-400 mr-2">{index + 1}.</span>
+                  <div key={item.id} className="text-sm text-zinc-400">
+                    <span className="text-zinc-600 mr-2">{index + 1}.</span>
                     {item.exercise_name} - {item.target_sets} × {item.target_reps}
                     {item.target_rir !== undefined && item.target_rir !== null && (
-                      <span className="text-gray-400"> @ RIR {item.target_rir}</span>
+                      <span className="text-zinc-600"> @ RIR {item.target_rir}</span>
                     )}
                   </div>
                 ))}
