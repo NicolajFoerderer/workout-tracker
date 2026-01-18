@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabase';
+import { seedUserData } from '../utils/seedUserData';
 
 interface AuthContextType {
   user: User | null;
@@ -36,6 +37,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setSession(session);
         setUser(session?.user ?? null);
+
+        // Seed default data if user is logged in
+        if (session?.user) {
+          await seedUserData(session.user.id);
+        }
       } catch (err) {
         console.error('Failed to get session:', err);
       } finally {
@@ -52,6 +58,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Seed default data for new users on sign in
+        if (event === 'SIGNED_IN' && session?.user) {
+          await seedUserData(session.user.id);
+        }
       }
     );
 
