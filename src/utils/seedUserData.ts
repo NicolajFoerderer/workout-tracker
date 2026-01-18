@@ -50,17 +50,24 @@ const pullTemplate = {
 };
 
 export async function seedUserData(userId: string): Promise<void> {
-  // Check if user already has exercises
-  const { data: existingExercises } = await supabase
-    .from('exercises')
-    .select('id')
-    .eq('user_id', userId)
-    .limit(1);
+  try {
+    // Check if user already has exercises
+    const { data: existingExercises, error: checkError } = await supabase
+      .from('exercises')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1);
 
-  if (existingExercises && existingExercises.length > 0) {
-    // User already has data, skip seeding
-    return;
-  }
+    if (checkError) {
+      console.error('Error checking existing exercises:', checkError);
+      return;
+    }
+
+    if (existingExercises && existingExercises.length > 0) {
+      // User already has data, skip seeding
+      console.log('User already has data, skipping seed');
+      return;
+    }
 
   // Insert exercises
   const exercisesToInsert = defaultExercises.map(ex => ({
@@ -110,7 +117,10 @@ export async function seedUserData(userId: string): Promise<void> {
     tracking: item.tracking,
   }));
 
-  await supabase.from('template_items').insert(pushItems);
+  const { error: pushItemsError } = await supabase.from('template_items').insert(pushItems);
+  if (pushItemsError) {
+    console.error('Failed to insert Push template items:', pushItemsError);
+  }
 
   // Insert Pull template
   const { data: pullTemplateData, error: pullError } = await supabase
@@ -138,7 +148,13 @@ export async function seedUserData(userId: string): Promise<void> {
     tracking: item.tracking,
   }));
 
-  await supabase.from('template_items').insert(pullItems);
+  const { error: pullItemsError } = await supabase.from('template_items').insert(pullItems);
+  if (pullItemsError) {
+    console.error('Failed to insert Pull template items:', pullItemsError);
+  }
 
   console.log('User data seeded successfully');
+  } catch (err) {
+    console.error('Error during seeding:', err);
+  }
 }
