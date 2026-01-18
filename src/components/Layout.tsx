@@ -28,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
     {
       path: '/exercises',
       label: 'Exercises',
-      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6h3m0 0V4a1 1 0 011-1h2a1 1 0 011 1v8a1 1 0 01-1 1H7a1 1 0 01-1-1V6zm0 0H2m20 6h-3m0 0v2a1 1 0 01-1 1h-2a1 1 0 01-1-1V6a1 1 0 011-1h2a1 1 0 011 1v6zm0 0h1M8 12h8" /></svg>
+      icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 5v14M18 5v14M6 12h12M3 7v10M21 7v10" /></svg>
     },
     {
       path: '/templates',
