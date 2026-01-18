@@ -6,6 +6,13 @@ const formatDate = (date: string | Date): string => {
   return d.toISOString().split('T')[0];
 };
 
+// Helper to get current user ID
+const getCurrentUserId = async (): Promise<string> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  return user.id;
+};
+
 // Exercises
 export async function getExercises() {
   const { data, error } = await supabase
@@ -35,9 +42,11 @@ export async function createExercise(exerciseData: {
   default_tracking: string;
   aliases?: string[];
 }) {
+  const userId = await getCurrentUserId();
+
   const { data, error } = await supabase
     .from('exercises')
-    .insert(exerciseData)
+    .insert({ ...exerciseData, user_id: userId })
     .select()
     .single();
 
@@ -149,9 +158,11 @@ export async function createTemplate(templateData: {
     tracking: string;
   }>;
 }) {
+  const userId = await getCurrentUserId();
+
   const { data: template, error } = await supabase
     .from('workout_templates')
-    .insert({ name: templateData.name, description: templateData.description })
+    .insert({ name: templateData.name, description: templateData.description, user_id: userId })
     .select()
     .single();
 
@@ -323,12 +334,15 @@ export async function createWorkoutLog(logData: {
     notes?: string;
   }>;
 }) {
+  const userId = await getCurrentUserId();
+
   const { data: log, error } = await supabase
     .from('workout_logs')
     .insert({
       date: logData.date,
       template_id: logData.template_id,
-      template_name_snapshot: logData.template_name_snapshot
+      template_name_snapshot: logData.template_name_snapshot,
+      user_id: userId
     })
     .select()
     .single();
