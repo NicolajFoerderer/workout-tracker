@@ -390,3 +390,29 @@ export async function deleteWorkoutLog(id: string) {
   if (error) throw new Error(error.message);
   return { message: 'Workout log deleted' };
 }
+
+// Get last workout sets for multiple exercises
+export async function getLastExerciseSets(exerciseIds: string[]): Promise<Record<string, Array<{ weight?: number; reps?: number }>>> {
+  const result: Record<string, Array<{ weight?: number; reps?: number }>> = {};
+
+  // Fetch the most recent log for each exercise
+  await Promise.all(
+    exerciseIds.map(async (exerciseId) => {
+      const { data, error } = await supabase
+        .from('exercise_logs')
+        .select(`
+          sets,
+          workout_logs!inner (date)
+        `)
+        .eq('exercise_id', exerciseId)
+        .order('workout_logs(date)', { ascending: false })
+        .limit(1);
+
+      if (error || !data || data.length === 0) return;
+
+      result[exerciseId] = data[0].sets as Array<{ weight?: number; reps?: number }>;
+    })
+  );
+
+  return result;
+}

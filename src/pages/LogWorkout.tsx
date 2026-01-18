@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTemplateById, createWorkoutLog } from '../utils/api';
+import { getTemplateById, createWorkoutLog, getLastExerciseSets } from '../utils/api';
 
 interface SetInput {
   weight: string;
   reps: string;
+}
+
+interface PreviousSet {
+  weight?: number;
+  reps?: number;
 }
 
 interface ExerciseInput {
@@ -15,6 +20,7 @@ interface ExerciseInput {
   targetReps: string;
   targetRir?: number;
   sets: SetInput[];
+  previousSets?: PreviousSet[];
 }
 
 interface TemplateItem {
@@ -49,6 +55,10 @@ export function LogWorkout() {
         const tmpl = await getTemplateById(templateId) as Template;
         setTemplate(tmpl);
 
+        // Fetch previous workout data for all exercises
+        const exerciseIds = tmpl.items.map(item => item.exercise_id);
+        const previousData = await getLastExerciseSets(exerciseIds);
+
         const inputs: ExerciseInput[] = tmpl.items.map((item) => {
           const sets: SetInput[] = [];
           for (let i = 0; i < item.target_sets; i++) {
@@ -62,6 +72,7 @@ export function LogWorkout() {
             targetReps: item.target_reps,
             targetRir: item.target_rir,
             sets,
+            previousSets: previousData[item.exercise_id],
           };
         });
 
@@ -202,6 +213,16 @@ export function LogWorkout() {
                 Target: {exercise.targetSets} x {exercise.targetReps}
                 {exercise.targetRir !== undefined && ` @ RIR ${exercise.targetRir}`}
               </p>
+              {exercise.previousSets && exercise.previousSets.length > 0 && (
+                <p className="text-sm text-zinc-600 mt-1">
+                  Last: {exercise.previousSets.map((s) => {
+                    if (exercise.tracking === 'reps_only') {
+                      return s.reps;
+                    }
+                    return `${s.weight || 0}×${s.reps || 0}`;
+                  }).join(' · ')}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
