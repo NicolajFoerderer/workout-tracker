@@ -19,6 +19,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let isMounted = true;
+
     // Check for hash fragment (magic link callback)
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get('access_token');
@@ -28,32 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.history.replaceState(null, '', window.location.pathname);
     }
 
-    // Get initial session
-    const initSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Error getting session:', error);
-        }
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        // Seed default data if user is logged in
-        if (session?.user) {
-          await seedUserData(session.user.id);
-        }
-      } catch (err) {
-        console.error('Failed to get session:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initSession();
-
-    // Listen for auth changes
+    // Listen for auth changes first - this handles the initial session too
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!isMounted) return;
+
         console.log('Auth state changed:', event);
         setSession(session);
         setUser(session?.user ?? null);
@@ -66,7 +47,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Get initial session
+    const initSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
+        if (error) {
+          console.error('Error getting session:', error);
+        }
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        // Seed default data if user is logged in
+        if (session?.user) {
+          await seedUserData(session.user.id);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('Failed to get session:', err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initSession();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithMagicLink = async (email: string) => {
