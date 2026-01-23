@@ -19,66 +19,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let isMounted = true;
+    // Get initial session synchronously from storage first
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    // Check for hash fragment (magic link callback)
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-
-    if (accessToken) {
-      // Clear the hash from URL
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-
-    // Listen for auth changes first - this handles the initial session too
+    // Listen for auth changes (handles magic link callback, sign out, etc.)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!isMounted) return;
-
-        console.log('Auth state changed:', event);
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
-        // Seed default data for new users on sign in
+        // Clear hash from URL after Supabase processes magic link
+        if (window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+
+        // Seed default data for new sign-ins only
         if (event === 'SIGNED_IN' && session?.user) {
-          await seedUserData(session.user.id);
+          seedUserData(session.user.id);
         }
       }
     );
 
-    // Get initial session
-    const initSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (!isMounted) return;
-
-        if (error) {
-          console.error('Error getting session:', error);
-        }
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        // Seed default data if user is logged in
-        if (session?.user) {
-          await seedUserData(session.user.id);
-        }
-      } catch (err) {
-        if (!isMounted) return;
-        console.error('Failed to get session:', err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initSession();
-
-    return () => {
-      isMounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signInWithMagicLink = async (email: string) => {
