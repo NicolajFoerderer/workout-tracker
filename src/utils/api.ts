@@ -336,37 +336,18 @@ export async function createWorkoutLog(logData: {
 }) {
   const userId = await getCurrentUserId();
 
-  const { data: log, error } = await supabase
-    .from('workout_logs')
-    .insert({
-      date: logData.date,
-      template_id: logData.template_id,
-      template_name_snapshot: logData.template_name_snapshot,
-      user_id: userId
-    })
-    .select()
-    .single();
+  // Use atomic RPC function to create workout and exercise logs in single transaction
+  const { data: workoutLogId, error } = await supabase.rpc('create_workout_log_atomic', {
+    p_date: logData.date,
+    p_template_id: logData.template_id,
+    p_template_name_snapshot: logData.template_name_snapshot,
+    p_user_id: userId,
+    p_items: logData.items,
+  });
 
   if (error) throw new Error(error.message);
 
-  if (logData.items.length > 0) {
-    const itemsToInsert = logData.items.map(item => ({
-      workout_log_id: log.id,
-      exercise_id: item.exercise_id,
-      exercise_name_snapshot: item.exercise_name_snapshot,
-      tracking: item.tracking,
-      sets: item.sets,
-      notes: item.notes
-    }));
-
-    const { error: itemsError } = await supabase
-      .from('exercise_logs')
-      .insert(itemsToInsert);
-
-    if (itemsError) throw new Error(itemsError.message);
-  }
-
-  return getWorkoutLogById(log.id);
+  return getWorkoutLogById(workoutLogId);
 }
 
 export async function updateWorkoutLog(id: string, data: { date: string }) {
