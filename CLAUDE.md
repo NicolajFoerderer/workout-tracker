@@ -5,40 +5,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build Commands
 
 ```bash
-# Frontend (from /frontend)
 npm run dev      # Start Vite dev server (port 5173)
 npm run build    # TypeScript check + Vite production build
 npm run lint     # ESLint
-
-# Backend (from /backend)
-npm run dev      # Nodemon with ts-node (port 3001)
-npm run build    # TypeScript compilation
-npm run db:init  # Initialize PostgreSQL schema and seed data
-
-# Database (from project root)
-docker-compose up -d  # Start PostgreSQL container
 ```
 
 ## Architecture
 
-**Stack**: React 19 + TypeScript + Vite frontend, Express backend, Supabase (auth + cloud DB), PostgreSQL (local dev)
+**Stack**: React 19 + TypeScript + Vite frontend, Supabase (auth + cloud DB)
 
 ### Data Flow
 - Frontend uses Supabase client directly for auth and data (`src/utils/api.ts`)
-- Backend provides PostgreSQL REST API (legacy/fallback mode)
 - Auth via Supabase magic link in `AuthContext.tsx`
 
 ### Key Directories
 ```
-frontend/src/
+src/
 ├── pages/           # Route components (Login, Home, LogWorkout, History, Progress, Exercises, Templates, TemplateForm)
 ├── contexts/        # AuthContext for Supabase auth state
 ├── utils/api.ts     # All Supabase data operations
 └── components/      # Shared Layout component
-
-backend/src/
-├── routes/          # Express route handlers
-└── db/              # PostgreSQL connection and schema init
 ```
 
 ### Database Schema
@@ -82,4 +68,4 @@ Dark mode with consistent colors:
 - Text: white/zinc-400/zinc-500, Primary: blue-400/500
 
 ### Environment Variables
-Frontend requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`
+Requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`
