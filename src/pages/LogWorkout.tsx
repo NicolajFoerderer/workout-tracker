@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTemplateById, createWorkoutLog, getLastExerciseSets } from '../utils/api';
 import { useWorkout, type ExerciseInput } from '../contexts/WorkoutContext';
@@ -31,6 +31,7 @@ export function LogWorkout() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const initializedForTemplateRef = useRef<string | null>(null);
 
   // Derive exerciseInputs and workoutDate from draft
   const exerciseInputs = draft?.exerciseInputs ?? [];
@@ -38,6 +39,11 @@ export function LogWorkout() {
 
   useEffect(() => {
     if (!templateId) return;
+
+    // Skip if we already initialized for this template
+    if (initializedForTemplateRef.current === templateId) {
+      return;
+    }
 
     const loadTemplate = async () => {
       try {
@@ -51,18 +57,11 @@ export function LogWorkout() {
           return;
         }
 
-        // If draft exists for this template, use it
-        if (draft && draft.templateId === templateId) {
-          // Fetch previous workout data to update previousSets (in case they changed)
-          const exerciseIds = tmpl.items.map(item => item.exercise_id);
-          const previousData = await getLastExerciseSets(exerciseIds);
+        // Mark as initialized for this template
+        initializedForTemplateRef.current = templateId;
 
-          // Update previousSets in the draft without losing user input
-          const updatedInputs = draft.exerciseInputs.map(input => ({
-            ...input,
-            previousSets: previousData[input.exerciseId],
-          }));
-          updateExerciseInputs(updatedInputs);
+        // If draft exists for this template, use it (no need to update previousSets on every render)
+        if (draft && draft.templateId === templateId) {
           setLoading(false);
           return;
         }
@@ -104,13 +103,14 @@ export function LogWorkout() {
     };
 
     loadTemplate();
-  }, [templateId, navigate, draft, setDraft, updateExerciseInputs]);
+  }, [templateId, navigate, draft, setDraft]);
 
   const handleStartFresh = async () => {
     if (!templateId || !template) return;
 
     setShowResumePrompt(false);
     setLoading(true);
+    initializedForTemplateRef.current = templateId;
 
     try {
       const exerciseIds = template.items.map(item => item.exercise_id);
