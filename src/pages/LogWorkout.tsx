@@ -1,26 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTemplateById, createWorkoutLog, getLastExerciseSets } from '../utils/api';
+import { useWorkout, type ExerciseInput } from '../contexts/WorkoutContext';
 
 interface SetInput {
   weight: string;
   reps: string;
-}
-
-interface PreviousSet {
-  weight?: number;
-  reps?: number;
-}
-
-interface ExerciseInput {
-  exerciseId: string;
-  exerciseName: string;
-  tracking: 'load_reps' | 'reps_only' | 'duration';
-  targetSets: number;
-  targetReps: string;
-  targetRir?: number;
-  sets: SetInput[];
-  previousSets?: PreviousSet[];
 }
 
 interface TemplateItem {
@@ -41,11 +26,15 @@ interface Template {
 export function LogWorkout() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
+  const { draft, setDraft, updateExerciseInputs, updateWorkoutDate, clearWorkout } = useWorkout();
   const [template, setTemplate] = useState<Template | null>(null);
-  const [exerciseInputs, setExerciseInputs] = useState<ExerciseInput[]>([]);
-  const [workoutDate, setWorkoutDate] = useState(new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+
+  // Derive exerciseInputs and workoutDate from draft
+  const exerciseInputs = draft?.exerciseInputs ?? [];
+  const workoutDate = draft?.workoutDate ?? new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     if (!templateId) return;
@@ -55,7 +44,30 @@ export function LogWorkout() {
         const tmpl = await getTemplateById(templateId) as Template;
         setTemplate(tmpl);
 
-        // Fetch previous workout data for all exercises
+        // Check if there's an existing draft for a different template
+        if (draft && draft.templateId !== templateId) {
+          setShowResumePrompt(true);
+          setLoading(false);
+          return;
+        }
+
+        // If draft exists for this template, use it
+        if (draft && draft.templateId === templateId) {
+          // Fetch previous workout data to update previousSets (in case they changed)
+          const exerciseIds = tmpl.items.map(item => item.exercise_id);
+          const previousData = await getLastExerciseSets(exerciseIds);
+
+          // Update previousSets in the draft without losing user input
+          const updatedInputs = draft.exerciseInputs.map(input => ({
+            ...input,
+            previousSets: previousData[input.exerciseId],
+          }));
+          updateExerciseInputs(updatedInputs);
+          setLoading(false);
+          return;
+        }
+
+        // No draft exists, create fresh inputs
         const exerciseIds = tmpl.items.map(item => item.exercise_id);
         const previousData = await getLastExerciseSets(exerciseIds);
 
@@ -76,7 +88,13 @@ export function LogWorkout() {
           };
         });
 
-        setExerciseInputs(inputs);
+        setDraft({
+          templateId,
+          templateName: tmpl.name,
+          workoutDate: new Date().toISOString().split('T')[0],
+          exerciseInputs: inputs,
+          startedAt: Date.now(),
+        });
       } catch (error) {
         console.error('Failed to load template:', error);
         navigate('/');
@@ -86,7 +104,54 @@ export function LogWorkout() {
     };
 
     loadTemplate();
-  }, [templateId, navigate]);
+  }, [templateId, navigate, draft, setDraft, updateExerciseInputs]);
+
+  const handleStartFresh = async () => {
+    if (!templateId || !template) return;
+
+    setShowResumePrompt(false);
+    setLoading(true);
+
+    try {
+      const exerciseIds = template.items.map(item => item.exercise_id);
+      const previousData = await getLastExerciseSets(exerciseIds);
+
+      const inputs: ExerciseInput[] = template.items.map((item) => {
+        const sets: SetInput[] = [];
+        for (let i = 0; i < item.target_sets; i++) {
+          sets.push({ weight: '', reps: '' });
+        }
+        return {
+          exerciseId: item.exercise_id,
+          exerciseName: item.exercise_name,
+          tracking: item.tracking,
+          targetSets: item.target_sets,
+          targetReps: item.target_reps,
+          targetRir: item.target_rir,
+          sets,
+          previousSets: previousData[item.exercise_id],
+        };
+      });
+
+      setDraft({
+        templateId,
+        templateName: template.name,
+        workoutDate: new Date().toISOString().split('T')[0],
+        exerciseInputs: inputs,
+        startedAt: Date.now(),
+      });
+    } catch (error) {
+      console.error('Failed to start fresh workout:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResumePrevious = () => {
+    if (!draft) return;
+    setShowResumePrompt(false);
+    navigate(`/log/${draft.templateId}`);
+  };
 
   const handleSetChange = (
     exerciseIndex: number,
@@ -94,40 +159,34 @@ export function LogWorkout() {
     field: 'weight' | 'reps',
     value: string
   ) => {
-    setExerciseInputs((prev) => {
-      const updated = [...prev];
-      updated[exerciseIndex] = {
-        ...updated[exerciseIndex],
-        sets: updated[exerciseIndex].sets.map((set, i) =>
-          i === setIndex ? { ...set, [field]: value } : set
-        ),
-      };
-      return updated;
-    });
+    const updated = [...exerciseInputs];
+    updated[exerciseIndex] = {
+      ...updated[exerciseIndex],
+      sets: updated[exerciseIndex].sets.map((set, i) =>
+        i === setIndex ? { ...set, [field]: value } : set
+      ),
+    };
+    updateExerciseInputs(updated);
   };
 
   const addSet = (exerciseIndex: number) => {
-    setExerciseInputs((prev) => {
-      const updated = [...prev];
-      updated[exerciseIndex] = {
-        ...updated[exerciseIndex],
-        sets: [...updated[exerciseIndex].sets, { weight: '', reps: '' }],
-      };
-      return updated;
-    });
+    const updated = [...exerciseInputs];
+    updated[exerciseIndex] = {
+      ...updated[exerciseIndex],
+      sets: [...updated[exerciseIndex].sets, { weight: '', reps: '' }],
+    };
+    updateExerciseInputs(updated);
   };
 
   const removeSet = (exerciseIndex: number, setIndex: number) => {
-    setExerciseInputs((prev) => {
-      const updated = [...prev];
-      if (updated[exerciseIndex].sets.length > 1) {
-        updated[exerciseIndex] = {
-          ...updated[exerciseIndex],
-          sets: updated[exerciseIndex].sets.filter((_, i) => i !== setIndex),
-        };
-      }
-      return updated;
-    });
+    const updated = [...exerciseInputs];
+    if (updated[exerciseIndex].sets.length > 1) {
+      updated[exerciseIndex] = {
+        ...updated[exerciseIndex],
+        sets: updated[exerciseIndex].sets.filter((_, i) => i !== setIndex),
+      };
+      updateExerciseInputs(updated);
+    }
   };
 
   const handleSave = async () => {
@@ -160,6 +219,7 @@ export function LogWorkout() {
         items,
       });
 
+      clearWorkout();
       navigate('/history');
     } catch (error) {
       console.error('Failed to save workout:', error);
@@ -167,6 +227,11 @@ export function LogWorkout() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleCancel = () => {
+    clearWorkout();
+    navigate('/');
   };
 
   if (loading) {
@@ -181,6 +246,34 @@ export function LogWorkout() {
     );
   }
 
+  if (showResumePrompt) {
+    return (
+      <div className="py-8">
+        <div className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-6">
+          <h2 className="text-lg font-medium text-white mb-2">Workout in Progress</h2>
+          <p className="text-zinc-400 mb-4">
+            You have an unfinished workout for <span className="text-white">{draft?.templateName}</span>.
+            Would you like to resume it or start a new workout?
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={handleResumePrevious}
+              className="flex-1 bg-blue-500 text-white py-2 px-4 rounded-xl font-medium hover:bg-blue-600 transition-colors"
+            >
+              Resume Previous
+            </button>
+            <button
+              onClick={handleStartFresh}
+              className="flex-1 bg-zinc-700 text-white py-2 px-4 rounded-xl font-medium hover:bg-zinc-600 transition-colors"
+            >
+              Start Fresh
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pb-20">
       <div className="flex items-center justify-between mb-6">
@@ -189,12 +282,12 @@ export function LogWorkout() {
           <input
             type="date"
             value={workoutDate}
-            onChange={(e) => setWorkoutDate(e.target.value)}
+            onChange={(e) => updateWorkoutDate(e.target.value)}
             className="text-sm text-zinc-300 bg-[#1c1c1f] border border-zinc-700 rounded-lg px-2 py-1 mt-1"
           />
         </div>
         <button
-          onClick={() => navigate('/')}
+          onClick={handleCancel}
           className="text-zinc-500 hover:text-white transition-colors"
         >
           Cancel
