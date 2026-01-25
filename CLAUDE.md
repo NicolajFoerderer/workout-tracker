@@ -69,3 +69,14 @@ Dark mode with consistent colors:
 
 ### Environment Variables
 Requires `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `.env`
+
+## Claude Code Instructions
+
+When you make a mistake that requires a fix, document the learning in the "Lessons Learned" section below to avoid repeating it.
+
+## Lessons Learned
+
+### Avoid useEffect dependency loops with context state
+When a `useEffect` reads from context state (like `draft`) and also updates that state (via `updateExerciseInputs`), including the state in the dependency array creates an infinite re-render loop. Every state update triggers the effect, which updates state again.
+
+**Fix**: Use a ref to track initialization status so the effect only runs once per logical trigger (e.g., `initializedForTemplateRef.current = templateId`), not on every state change.
