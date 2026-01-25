@@ -350,7 +350,7 @@ export async function createWorkoutLog(logData: {
   return getWorkoutLogById(workoutLogId);
 }
 
-export async function updateWorkoutLog(id: string, data: { date: string }) {
+export async function updateWorkoutLog(id: string, data: { date?: string }) {
   const { data: log, error } = await supabase
     .from('workout_logs')
     .update({ date: data.date })
@@ -360,6 +360,18 @@ export async function updateWorkoutLog(id: string, data: { date: string }) {
 
   if (error) throw new Error(error.message);
   return { ...log, date: formatDate(log.date) };
+}
+
+export async function updateExerciseLog(id: string, data: { sets: Array<{ set_index: number; weight?: number; reps?: number }> }) {
+  const { data: log, error } = await supabase
+    .from('exercise_logs')
+    .update({ sets: data.sets })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw new Error(error.message);
+  return log;
 }
 
 export async function deleteWorkoutLog(id: string) {
