@@ -29,7 +29,7 @@ interface ProgressEntry {
 
 interface ProgressDataPoint {
   date: string;
-  e1rmMax: number;
+  value: number;
 }
 
 interface ExerciseProgress {
@@ -37,6 +37,7 @@ interface ExerciseProgress {
   data: ProgressDataPoint[];
   personalRecord: ProgressDataPoint | null;
   latestDate: string;
+  trackingType: 'load_reps' | 'reps_only';
 }
 
 function calculateE1RM(weight: number, reps: number): number {
@@ -44,7 +45,7 @@ function calculateE1RM(weight: number, reps: number): number {
   return weight * (1 + reps / 30);
 }
 
-function computeProgressData(entries: ProgressEntry[]): ProgressDataPoint[] {
+function computeE1RMProgress(entries: ProgressEntry[]): ProgressDataPoint[] {
   const progressMap = new Map<string, number>();
 
   for (const entry of entries) {
@@ -69,8 +70,39 @@ function computeProgressData(entries: ProgressEntry[]): ProgressDataPoint[] {
   }
 
   const result: ProgressDataPoint[] = [];
-  progressMap.forEach((e1rmMax, date) => {
-    result.push({ date, e1rmMax });
+  progressMap.forEach((value, date) => {
+    result.push({ date, value });
+  });
+
+  return result.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function computeRepsProgress(entries: ProgressEntry[]): ProgressDataPoint[] {
+  const progressMap = new Map<string, number>();
+
+  for (const entry of entries) {
+    if (entry.tracking !== 'reps_only') continue;
+
+    const sets = Array.isArray(entry.sets) ? entry.sets : [];
+    let maxReps = 0;
+
+    for (const set of sets) {
+      if (set.reps && set.reps > maxReps) {
+        maxReps = set.reps;
+      }
+    }
+
+    if (maxReps > 0) {
+      const existing = progressMap.get(entry.date);
+      if (!existing || maxReps > existing) {
+        progressMap.set(entry.date, maxReps);
+      }
+    }
+  }
+
+  const result: ProgressDataPoint[] = [];
+  progressMap.forEach((value, date) => {
+    result.push({ date, value });
   });
 
   return result.sort((a, b) => a.date.localeCompare(b.date));
@@ -85,19 +117,22 @@ export function Progress() {
     const loadAllProgress = async () => {
       try {
         const allExercises = await getExercises() as Exercise[];
-        const loadRepsExercises = allExercises.filter(
-          (e) => e.default_tracking === 'load_reps'
+        const trackableExercises = allExercises.filter(
+          (e) => e.default_tracking === 'load_reps' || e.default_tracking === 'reps_only'
         );
 
         const progressList: ExerciseProgress[] = [];
 
-        for (const exercise of loadRepsExercises) {
+        for (const exercise of trackableExercises) {
           const entries = await getExerciseProgress(exercise.id) as ProgressEntry[];
-          const data = computeProgressData(entries);
+          const isRepsOnly = exercise.default_tracking === 'reps_only';
+          const data = isRepsOnly
+            ? computeRepsProgress(entries)
+            : computeE1RMProgress(entries);
 
           if (data.length > 0) {
             const personalRecord = data.reduce((max, curr) =>
-              curr.e1rmMax > max.e1rmMax ? curr : max
+              curr.value > max.value ? curr : max
             );
             const latestDate = data[data.length - 1].date;
 
@@ -106,6 +141,7 @@ export function Progress() {
               data,
               personalRecord,
               latestDate,
+              trackingType: isRepsOnly ? 'reps_only' : 'load_reps',
             });
           }
         }
@@ -151,68 +187,79 @@ export function Progress() {
 
       {filteredProgress.length > 0 ? (
         <div className="space-y-4">
-          {filteredProgress.map((ep) => (
-            <div key={ep.exercise.id} className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4">
-              <h2 className="text-lg font-semibold text-white mb-1">
-                {ep.exercise.name}
-              </h2>
+          {filteredProgress.map((ep) => {
+            const isRepsOnly = ep.trackingType === 'reps_only';
+            const label = isRepsOnly ? 'Best Reps' : 'e1RM';
 
-              {ep.personalRecord && (
-                <p className="text-sm text-zinc-500 mb-4">
-                  PR: <span className="text-green-400">{ep.personalRecord.e1rmMax.toFixed(1)} kg</span> e1RM
-                </p>
-              )}
+            return (
+              <div key={ep.exercise.id} className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4">
+                <h2 className="text-lg font-semibold text-white mb-1">
+                  {ep.exercise.name}
+                </h2>
 
-              <div className="h-40">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={ep.data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
-                    <XAxis
-                      dataKey="date"
-                      tickFormatter={formatDate}
-                      fontSize={11}
-                      stroke="#52525b"
-                      tickLine={false}
-                    />
-                    <YAxis
-                      domain={['dataMin - 5', 'dataMax + 5']}
-                      fontSize={11}
-                      stroke="#52525b"
-                      tickLine={false}
-                      tickFormatter={(value) => `${Number(value).toFixed(0)}`}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1c1c1f',
-                        border: '1px solid #27272a',
-                        borderRadius: '8px',
-                        color: '#fafafa',
-                      }}
-                      labelFormatter={(label) => formatDate(label as string)}
-                      formatter={(value) => [
-                        `${(value as number).toFixed(1)} kg`,
-                        'e1RM',
-                      ]}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="e1rmMax"
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      dot={{ fill: '#3b82f6', strokeWidth: 0, r: 3 }}
-                      activeDot={{ r: 5, fill: '#3b82f6' }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                {ep.personalRecord && (
+                  <p className="text-sm text-zinc-500 mb-4">
+                    PR: <span className="text-green-400">
+                      {isRepsOnly
+                        ? `${ep.personalRecord.value} reps`
+                        : `${ep.personalRecord.value.toFixed(1)} kg`}
+                    </span> {label}
+                  </p>
+                )}
+
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={ep.data}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={formatDate}
+                        fontSize={11}
+                        stroke="#52525b"
+                        tickLine={false}
+                      />
+                      <YAxis
+                        domain={isRepsOnly ? ['dataMin - 1', 'dataMax + 1'] : ['dataMin - 5', 'dataMax + 5']}
+                        fontSize={11}
+                        stroke="#52525b"
+                        tickLine={false}
+                        tickFormatter={(value) => `${Number(value).toFixed(0)}`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1c1c1f',
+                          border: '1px solid #27272a',
+                          borderRadius: '8px',
+                          color: '#fafafa',
+                        }}
+                        labelFormatter={(labelValue) => formatDate(labelValue as string)}
+                        formatter={(value) => [
+                          isRepsOnly
+                            ? `${value} reps`
+                            : `${(value as number).toFixed(1)} kg`,
+                          label,
+                        ]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        dot={{ fill: '#3b82f6', strokeWidth: 0, r: 3 }}
+                        activeDot={{ r: 5, fill: '#3b82f6' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="text-center py-12 text-zinc-500">
           <p>No progress data yet.</p>
           <p className="text-sm mt-2">
-            Log some workouts to see your e1RM progression.
+            Log some workouts to see your progress.
           </p>
         </div>
       )}
