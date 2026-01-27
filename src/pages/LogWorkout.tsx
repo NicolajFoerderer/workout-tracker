@@ -211,22 +211,24 @@ export function LogWorkout() {
     setSaving(true);
 
     try {
-      const items = exerciseInputs.map((input) => {
-        const sets = input.sets
-          .map((set, index) => ({
-            set_index: index + 1,
-            weight: set.weight ? parseFloat(set.weight) : undefined,
-            reps: set.reps ? parseInt(set.reps, 10) : undefined,
-          }))
-          .filter((set) => set.weight !== undefined || set.reps !== undefined);
+      const items = exerciseInputs
+        .map((input) => {
+          const sets = input.sets
+            .map((set, index) => ({
+              set_index: index + 1,
+              weight: set.weight ? parseFloat(set.weight) : undefined,
+              reps: set.reps ? parseInt(set.reps, 10) : undefined,
+            }))
+            .filter((set) => set.weight !== undefined || set.reps !== undefined);
 
-        return {
-          exercise_id: input.exerciseId,
-          exercise_name_snapshot: input.exerciseName,
-          tracking: input.tracking,
-          sets,
-        };
-      });
+          return {
+            exercise_id: input.exerciseId,
+            exercise_name_snapshot: input.exerciseName,
+            tracking: input.tracking,
+            sets,
+          };
+        })
+        .filter((item) => item.sets.length > 0); // Only include exercises with logged data
 
       await createWorkoutLog({
         date: workoutDate,
