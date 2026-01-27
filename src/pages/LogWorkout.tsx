@@ -354,10 +354,10 @@ export function LogWorkout() {
                   {exercise.tracking === 'load_reps' && (
                     <div className="col-span-4">
                       <input
-                        type="number"
+                        type="text"
                         inputMode="decimal"
-                        step="0.5"
-                        lang="en"
+                        autoComplete="off"
+                        autoCorrect="off"
                         value={set.weight}
                         onChange={(e) =>
                           handleSetChange(exerciseIndex, setIndex, 'weight', e.target.value)
