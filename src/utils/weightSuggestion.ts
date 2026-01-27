@@ -85,7 +85,12 @@ export function calculateSuggestedWeight(
 
 /**
  * Format a weight value for display (remove unnecessary decimals)
+ * Always uses decimal point (not comma) regardless of locale
  */
 export function formatWeight(weight: number): string {
-  return weight % 1 === 0 ? weight.toString() : weight.toFixed(1);
+  if (weight % 1 === 0) {
+    return weight.toString();
+  }
+  // Use toFixed and ensure decimal point (not comma)
+  return weight.toFixed(1).replace(',', '.');
 }
