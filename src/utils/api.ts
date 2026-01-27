@@ -131,7 +131,7 @@ export async function getTemplateById(id: string) {
     .from('template_items')
     .select(`
       *,
-      exercises (name)
+      exercises (name, equipment)
     `)
     .eq('template_id', id)
     .order('order_index');
@@ -142,7 +142,8 @@ export async function getTemplateById(id: string) {
     ...template,
     items: items.map(item => ({
       ...item,
-      exercise_name: item.exercises?.name
+      exercise_name: item.exercises?.name,
+      exercise_equipment: item.exercises?.equipment
     }))
   };
 }

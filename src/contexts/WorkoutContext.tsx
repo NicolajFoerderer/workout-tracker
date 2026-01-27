@@ -13,6 +13,7 @@ interface PreviousSet {
 export interface ExerciseInput {
   exerciseId: string;
   exerciseName: string;
+  equipment: 'barbell' | 'dumbbell' | 'cable' | 'machine' | 'bodyweight' | 'other';
   tracking: 'load_reps' | 'reps_only' | 'duration';
   targetSets: number;
   targetReps: string;

@@ -2,6 +2,9 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTemplateById, createWorkoutLog, getLastExerciseSets } from '../utils/api';
 import { useWorkout, type ExerciseInput } from '../contexts/WorkoutContext';
+import { calculateSuggestedWeight, formatWeight } from '../utils/weightSuggestion';
+
+type Equipment = 'barbell' | 'dumbbell' | 'cable' | 'machine' | 'bodyweight' | 'other';
 
 interface SetInput {
   weight: string;
@@ -11,6 +14,7 @@ interface SetInput {
 interface TemplateItem {
   exercise_id: string;
   exercise_name: string;
+  exercise_equipment: Equipment;
   target_sets: number;
   target_reps: string;
   target_rir?: number;
@@ -71,19 +75,25 @@ export function LogWorkout() {
         const previousData = await getLastExerciseSets(exerciseIds);
 
         const inputs: ExerciseInput[] = tmpl.items.map((item) => {
+          const previousSets = previousData[item.exercise_id];
+          const targetReps = parseInt(item.target_reps, 10) || 0;
+          const suggestion = calculateSuggestedWeight(previousSets, targetReps, item.exercise_equipment);
+          const suggestedWeight = suggestion ? formatWeight(suggestion.weight) : '';
+
           const sets: SetInput[] = [];
           for (let i = 0; i < item.target_sets; i++) {
-            sets.push({ weight: '', reps: '' });
+            sets.push({ weight: suggestedWeight, reps: '' });
           }
           return {
             exerciseId: item.exercise_id,
             exerciseName: item.exercise_name,
+            equipment: item.exercise_equipment,
             tracking: item.tracking,
             targetSets: item.target_sets,
             targetReps: item.target_reps,
             targetRir: item.target_rir,
             sets,
-            previousSets: previousData[item.exercise_id],
+            previousSets,
           };
         });
 
@@ -117,19 +127,25 @@ export function LogWorkout() {
       const previousData = await getLastExerciseSets(exerciseIds);
 
       const inputs: ExerciseInput[] = template.items.map((item) => {
+        const previousSets = previousData[item.exercise_id];
+        const targetReps = parseInt(item.target_reps, 10) || 0;
+        const suggestion = calculateSuggestedWeight(previousSets, targetReps, item.exercise_equipment);
+        const suggestedWeight = suggestion ? formatWeight(suggestion.weight) : '';
+
         const sets: SetInput[] = [];
         for (let i = 0; i < item.target_sets; i++) {
-          sets.push({ weight: '', reps: '' });
+          sets.push({ weight: suggestedWeight, reps: '' });
         }
         return {
           exerciseId: item.exercise_id,
           exerciseName: item.exercise_name,
+          equipment: item.exercise_equipment,
           tracking: item.tracking,
           targetSets: item.target_sets,
           targetReps: item.target_reps,
           targetRir: item.target_rir,
           sets,
-          previousSets: previousData[item.exercise_id],
+          previousSets,
         };
       });
 
