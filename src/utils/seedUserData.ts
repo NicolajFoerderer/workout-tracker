@@ -16,7 +16,7 @@ const defaultExercises: ExerciseData[] = [
   { name: 'Hanging Knee Raise', category: 'core', equipment: 'bodyweight', default_tracking: 'reps_only', aliases: [] },
   { name: 'Cable Woodchopper', category: 'core', equipment: 'cable', default_tracking: 'load_reps', aliases: [] },
   { name: 'Pull-ups', category: 'compound', equipment: 'bodyweight', default_tracking: 'reps_only', aliases: ['Lat Pulldown'] },
-  { name: 'Chest Supported Row', category: 'compound', equipment: 'dumbbell', default_tracking: 'load_reps', aliases: [] },
+  { name: 'Chest Supported Row', category: 'compound', equipment: 'machine', default_tracking: 'load_reps', aliases: [] },
   { name: 'Incline Dumbbell Curl', category: 'isolation', equipment: 'dumbbell', default_tracking: 'load_reps', aliases: [] },
   { name: 'Hammer Curl', category: 'isolation', equipment: 'dumbbell', default_tracking: 'load_reps', aliases: [] },
   { name: 'Cable Crunch', category: 'core', equipment: 'cable', default_tracking: 'load_reps', aliases: [] },
