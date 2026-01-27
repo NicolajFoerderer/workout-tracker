@@ -80,3 +80,8 @@ When you make a mistake that requires a fix, document the learning in the "Lesso
 When a `useEffect` reads from context state (like `draft`) and also updates that state (via `updateExerciseInputs`), including the state in the dependency array creates an infinite re-render loop. Every state update triggers the effect, which updates state again.
 
 **Fix**: Use a ref to track initialization status so the effect only runs once per logical trigger (e.g., `initializedForTemplateRef.current = templateId`), not on every state change.
+
+### Avoid `<input type="number">` for locale-sensitive display
+HTML number inputs display values using the browser's locale formatting. Even if you set `value="57.5"`, a German locale browser will display "57,5". This can confuse users and cause issues with decimal parsing.
+
+**Fix**: Use `<input type="text" inputMode="decimal">` instead. This shows a numeric keyboard on mobile while displaying the exact value you set, without locale formatting.
