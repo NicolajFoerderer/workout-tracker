@@ -81,7 +81,7 @@ When a `useEffect` reads from context state (like `draft`) and also updates that
 
 **Fix**: Use a ref to track initialization status so the effect only runs once per logical trigger (e.g., `initializedForTemplateRef.current = templateId`), not on every state change.
 
-### Avoid `<input type="number">` for locale-sensitive display
-HTML number inputs display values using the browser's locale formatting. Even if you set `value="57.5"`, a German locale browser will display "57,5". This can confuse users and cause issues with decimal parsing.
+### Avoid `<input type="number">` for pre-filled decimal values
+HTML number inputs convert string values to numbers internally and display using browser locale formatting. Even if you set `value="57.5"`, a German locale browser will display "57,5". Manually typed values are preserved as-is, but programmatically set values go through this conversion.
 
-**Fix**: Use `<input type="text" inputMode="decimal">` instead. This shows a numeric keyboard on mobile while displaying the exact value you set, without locale formatting.
+**Fix**: Use `<input type="text" inputMode="decimal" autoComplete="off" autoCorrect="off">`. This shows a numeric keyboard on mobile while preserving the exact string value. The autoComplete/autoCorrect attributes prevent iOS autocomplete suggestions.
