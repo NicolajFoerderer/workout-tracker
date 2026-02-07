@@ -166,9 +166,13 @@ export function History() {
             >
               <div className="flex justify-between items-start mb-3">
                 <div>
-                  <h3 className="font-semibold text-white">
+                  <Link
+                    to={`/summary/${log.id}`}
+                    className="font-semibold text-white hover:text-blue-400 transition-colors"
+                  >
                     {log.template_name_snapshot}
-                  </h3>
+                    <span className="text-zinc-600 ml-2">→</span>
+                  </Link>
                   {editingDateId === log.id ? (
                     <input
                       type="date"
