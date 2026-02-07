@@ -230,15 +230,15 @@ export function LogWorkout() {
         })
         .filter((item) => item.sets.length > 0); // Only include exercises with logged data
 
-      await createWorkoutLog({
+      const savedLog = await createWorkoutLog({
         date: workoutDate,
         template_id: template.id,
         template_name_snapshot: template.name,
         items,
-      });
+      }) as { id: string };
 
       clearWorkout();
-      navigate('/history');
+      navigate(`/summary/${savedLog.id}`);
     } catch (error) {
       console.error('Failed to save workout:', error);
       alert('Failed to save workout. Please try again.');

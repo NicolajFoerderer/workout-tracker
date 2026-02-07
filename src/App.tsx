@@ -5,6 +5,7 @@ import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
 import { LogWorkout } from './pages/LogWorkout';
+import { WorkoutSummary } from './pages/WorkoutSummary';
 import { History } from './pages/History';
 import { Progress } from './pages/Progress';
 import { Exercises } from './pages/Exercises';
@@ -62,6 +63,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <Layout>
               <LogWorkout />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/summary/:workoutLogId"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <WorkoutSummary />
             </Layout>
           </ProtectedRoute>
         }

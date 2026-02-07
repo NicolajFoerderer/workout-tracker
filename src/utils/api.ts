@@ -289,7 +289,10 @@ export async function getWorkoutLogById(id: string) {
 
   const { data: items, error: itemsError } = await supabase
     .from('exercise_logs')
-    .select('*')
+    .select(`
+      *,
+      exercises (name, equipment, default_tracking)
+    `)
     .eq('workout_log_id', id);
 
   if (itemsError) throw new Error(itemsError.message);
@@ -297,7 +300,12 @@ export async function getWorkoutLogById(id: string) {
   return {
     ...log,
     date: formatDate(log.date),
-    items
+    items: items.map(item => ({
+      ...item,
+      exercise_name: item.exercises?.name || item.exercise_name_snapshot,
+      exercise_equipment: item.exercises?.equipment || 'other',
+      exercise_tracking: item.exercises?.default_tracking || item.tracking,
+    }))
   };
 }
 
