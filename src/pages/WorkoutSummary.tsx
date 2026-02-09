@@ -283,9 +283,26 @@ export function WorkoutSummary() {
 
   return (
     <div className="pb-20">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">{workoutLog.template_name_snapshot}</h1>
-        <p className="text-zinc-500">{formatDate(workoutLog.date)}</p>
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">{workoutLog.template_name_snapshot}</h1>
+          <p className="text-zinc-500">{formatDate(workoutLog.date)}</p>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            to={`/edit/${workoutLogId}`}
+            className="text-sm text-zinc-400 hover:text-white px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+          >
+            Edit
+          </Link>
+          <button
+            onClick={handleDelete}
+            disabled={deleting}
+            className="text-sm text-zinc-400 hover:text-red-400 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors disabled:opacity-50"
+          >
+            {deleting ? '...' : 'Delete'}
+          </button>
+        </div>
       </div>
 
       {/* Exercise List */}
@@ -298,13 +315,13 @@ export function WorkoutSummary() {
             <div
               key={e.exerciseId}
               className={`bg-[#141416] rounded-xl border p-4 ${
-                e.isPR ? 'border-yellow-500/50' : 'border-zinc-800/50'
+                e.isPR ? 'border-emerald-600/40' : 'border-zinc-800/50'
               }`}
             >
               <div className="flex justify-between items-start mb-1">
                 <h3 className="font-medium text-white">{e.exerciseName}</h3>
                 {e.isPR && (
-                  <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full">
                     PR
                   </span>
                 )}
@@ -317,7 +334,7 @@ export function WorkoutSummary() {
 
               {/* PR details */}
               {e.isPR && (
-                <p className="text-sm text-yellow-400 mt-2">
+                <p className="text-sm text-emerald-400 mt-2">
                   {e.prType === 'reps'
                     ? `New best: ${e.bestReps} reps`
                     : `New e1RM: ${e.bestE1RM.toFixed(1)} kg`}
@@ -378,7 +395,7 @@ export function WorkoutSummary() {
                                 cx={cx}
                                 cy={cy}
                                 r={5}
-                                fill={e.isPR ? '#eab308' : '#22c55e'}
+                                fill={e.isPR ? '#10b981' : '#3b82f6'}
                                 stroke="white"
                                 strokeWidth={2}
                               />
@@ -408,23 +425,6 @@ export function WorkoutSummary() {
             </div>
           );
         })}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3 mb-6">
-        <Link
-          to={`/edit/${workoutLogId}`}
-          className="flex-1 bg-zinc-700 text-white py-3 px-4 rounded-xl font-medium text-center hover:bg-zinc-600 transition-colors"
-        >
-          Edit Workout
-        </Link>
-        <button
-          onClick={handleDelete}
-          disabled={deleting}
-          className="bg-zinc-800 text-red-400 py-3 px-4 rounded-xl font-medium hover:bg-zinc-700 transition-colors disabled:opacity-50"
-        >
-          {deleting ? 'Deleting...' : 'Delete'}
-        </button>
       </div>
 
       {/* Bottom Navigation */}
