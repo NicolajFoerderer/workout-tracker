@@ -271,15 +271,28 @@ export function WorkoutSummary() {
 
   const formatSets = (sets: SetData[], tracking: string) => {
     return sets
-      .filter(s => s.weight !== undefined || s.reps !== undefined)
+      .filter(s => {
+        if (tracking === 'reps_only') {
+          return s.reps !== undefined && s.reps > 0;
+        }
+        return (s.weight !== undefined && s.weight > 0) || (s.reps !== undefined && s.reps > 0);
+      })
       .map(s => {
         if (tracking === 'reps_only') {
           return `${s.reps}`;
         }
-        return `${s.weight}×${s.reps}`;
+        return `${s.weight ?? 0}×${s.reps ?? 0}`;
       })
       .join(' · ');
   };
+
+  // Filter out exercises with no actual data
+  const exercisesWithData = exerciseStats.filter(e => {
+    const validSets = e.sets.filter(s =>
+      (s.weight !== undefined && s.weight > 0) || (s.reps !== undefined && s.reps > 0)
+    );
+    return validSets.length > 0;
+  });
 
   return (
     <div>
@@ -315,7 +328,7 @@ export function WorkoutSummary() {
 
       {/* Exercise List */}
       <div className="space-y-3 mb-6">
-        {exerciseStats.map(e => {
+        {exercisesWithData.map(e => {
           const isRepsOnly = e.tracking === 'reps_only';
           const label = isRepsOnly ? 'Best Reps' : 'e1RM';
 
