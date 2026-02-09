@@ -282,11 +282,19 @@ export function WorkoutSummary() {
   };
 
   return (
-    <div className="pb-20">
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">{workoutLog.template_name_snapshot}</h1>
-          <p className="text-zinc-500">{formatDate(workoutLog.date)}</p>
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-zinc-400 hover:text-white transition-colors p-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <div className="flex-1">
+          <h1 className="text-xl font-bold text-white">{workoutLog.template_name_snapshot}</h1>
+          <p className="text-sm text-zinc-500">{formatDate(workoutLog.date)}</p>
         </div>
         <div className="flex gap-2">
           <Link
@@ -427,23 +435,6 @@ export function WorkoutSummary() {
         })}
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 bg-[#0a0a0b]/80 backdrop-blur-lg py-3 px-4">
-        <div className="max-w-lg mx-auto flex gap-3">
-          <Link
-            to="/history"
-            className="flex-1 bg-zinc-700 text-white py-3 px-4 rounded-xl font-medium text-center hover:bg-zinc-600 transition-colors"
-          >
-            View History
-          </Link>
-          <Link
-            to="/"
-            className="flex-1 bg-white text-black py-3 px-4 rounded-xl font-medium text-center hover:bg-zinc-200 transition-colors"
-          >
-            Done
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }
