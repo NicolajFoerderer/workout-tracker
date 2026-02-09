@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   LineChart,
   Line,
@@ -9,7 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { getWorkoutLogById, getExerciseProgress } from '../utils/api';
+import { getWorkoutLogById, getExerciseProgress, deleteWorkoutLog } from '../utils/api';
 import { calculateSuggestedWeight, formatWeight } from '../utils/weightSuggestion';
 
 type Equipment = 'barbell' | 'dumbbell' | 'cable' | 'machine' | 'bodyweight' | 'other';
@@ -133,9 +133,26 @@ function computeRepsProgress(entries: ProgressEntry[]): ProgressDataPoint[] {
 
 export function WorkoutSummary() {
   const { workoutLogId } = useParams<{ workoutLogId: string }>();
+  const navigate = useNavigate();
   const [workoutLog, setWorkoutLog] = useState<WorkoutLog | null>(null);
   const [exerciseStats, setExerciseStats] = useState<ExerciseStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!workoutLogId) return;
+    if (!confirm('Delete this workout? This cannot be undone.')) return;
+
+    setDeleting(true);
+    try {
+      await deleteWorkoutLog(workoutLogId);
+      navigate('/history');
+    } catch (error) {
+      console.error('Failed to delete workout:', error);
+      alert('Failed to delete workout');
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (!workoutLogId) return;
@@ -414,6 +431,23 @@ export function WorkoutSummary() {
       </div>
 
       {/* Action Buttons */}
+      <div className="flex gap-3 mb-6">
+        <Link
+          to={`/edit/${workoutLogId}`}
+          className="flex-1 bg-zinc-700 text-white py-3 px-4 rounded-xl font-medium text-center hover:bg-zinc-600 transition-colors"
+        >
+          Edit Workout
+        </Link>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="bg-zinc-800 text-red-400 py-3 px-4 rounded-xl font-medium hover:bg-zinc-700 transition-colors disabled:opacity-50"
+        >
+          {deleting ? 'Deleting...' : 'Delete'}
+        </button>
+      </div>
+
+      {/* Bottom Navigation */}
       <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 bg-[#0a0a0b]/80 backdrop-blur-lg py-3 px-4">
         <div className="max-w-lg mx-auto flex gap-3">
           <Link
