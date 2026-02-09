@@ -393,11 +393,11 @@ export async function deleteWorkoutLog(id: string) {
   return { message: 'Workout log deleted' };
 }
 
-// Get last workout sets for multiple exercises (only returns logs with actual weight data)
+// Get last workout sets for multiple exercises (returns logs with actual data - weight or reps)
 export async function getLastExerciseSets(exerciseIds: string[]): Promise<Record<string, Array<{ weight?: number; reps?: number }>>> {
   const result: Record<string, Array<{ weight?: number; reps?: number }>> = {};
 
-  // Fetch recent logs for each exercise, find first with actual weight data
+  // Fetch recent logs for each exercise, find first with actual data
   await Promise.all(
     exerciseIds.map(async (exerciseId) => {
       const { data, error } = await supabase
@@ -412,11 +412,14 @@ export async function getLastExerciseSets(exerciseIds: string[]): Promise<Record
 
       if (error || !data || data.length === 0) return;
 
-      // Find the first log that has at least one set with weight > 0
+      // Find the first log that has at least one set with actual data (weight > 0 or reps > 0)
       for (const log of data) {
         const sets = log.sets as Array<{ weight?: number; reps?: number }>;
-        const hasWeightData = sets?.some(s => s.weight !== undefined && s.weight > 0);
-        if (hasWeightData) {
+        const hasData = sets?.some(s =>
+          (s.weight !== undefined && s.weight > 0) ||
+          (s.reps !== undefined && s.reps > 0)
+        );
+        if (hasData) {
           result[exerciseId] = sets;
           return;
         }
