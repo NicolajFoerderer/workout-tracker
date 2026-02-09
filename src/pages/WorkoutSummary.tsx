@@ -269,87 +269,69 @@ export function WorkoutSummary() {
     return <div className="text-center py-8 text-zinc-500">Workout not found</div>;
   }
 
-  const totalSets = exerciseStats.reduce((sum, e) => sum + e.sets.length, 0);
-  const totalVolume = exerciseStats.reduce((sum, e) => sum + e.totalVolume, 0);
-  const totalPRs = exerciseStats.filter(e => e.isPR).length;
+  const formatSets = (sets: SetData[], tracking: string) => {
+    return sets
+      .filter(s => s.weight !== undefined || s.reps !== undefined)
+      .map(s => {
+        if (tracking === 'reps_only') {
+          return `${s.reps}`;
+        }
+        return `${s.weight}×${s.reps}`;
+      })
+      .join(' · ');
+  };
 
   return (
     <div className="pb-20">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Workout Complete!</h1>
-        <p className="text-zinc-500">{workoutLog.template_name_snapshot} • {formatDate(workoutLog.date)}</p>
+        <h1 className="text-2xl font-bold text-white">{workoutLog.template_name_snapshot}</h1>
+        <p className="text-zinc-500">{formatDate(workoutLog.date)}</p>
       </div>
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
-        <div className="bg-[#141416] rounded-xl border border-zinc-800/50 p-4 text-center">
-          <p className="text-2xl font-bold text-white">{exerciseStats.length}</p>
-          <p className="text-xs text-zinc-500">Exercises</p>
-        </div>
-        <div className="bg-[#141416] rounded-xl border border-zinc-800/50 p-4 text-center">
-          <p className="text-2xl font-bold text-white">{totalSets}</p>
-          <p className="text-xs text-zinc-500">Sets</p>
-        </div>
-        <div className="bg-[#141416] rounded-xl border border-zinc-800/50 p-4 text-center">
-          <p className="text-2xl font-bold text-white">{(totalVolume / 1000).toFixed(1)}k</p>
-          <p className="text-xs text-zinc-500">Volume (kg)</p>
-        </div>
-      </div>
-
-      {/* PRs Section */}
-      {totalPRs > 0 && (
-        <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-2xl border border-yellow-500/30 p-4 mb-6">
-          <h2 className="text-lg font-semibold text-yellow-400 mb-3">
-            🏆 Personal Records ({totalPRs})
-          </h2>
-          <div className="space-y-2">
-            {exerciseStats.filter(e => e.isPR).map(e => (
-              <div key={e.exerciseId} className="flex justify-between items-center">
-                <span className="text-white">{e.exerciseName}</span>
-                <span className="text-yellow-400 font-medium">
-                  {e.prType === 'reps'
-                    ? `${e.bestReps} reps`
-                    : `${e.bestE1RM.toFixed(1)} kg e1RM`}
-                  {e.previousBest > 0 && (
-                    <span className="text-zinc-500 text-sm ml-2">
-                      (+{((e.prType === 'reps' ? e.bestReps : e.bestE1RM) - e.previousBest).toFixed(1)})
-                    </span>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Exercise Details with Graphs */}
-      <div className="space-y-4 mb-6">
-        <h2 className="text-lg font-semibold text-white">Exercise Performance</h2>
+      {/* Exercise List */}
+      <div className="space-y-3 mb-6">
         {exerciseStats.map(e => {
           const isRepsOnly = e.tracking === 'reps_only';
           const label = isRepsOnly ? 'Best Reps' : 'e1RM';
 
           return (
-            <div key={e.exerciseId} className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-medium text-white">{e.exerciseName}</h3>
-                  <p className="text-sm text-zinc-500">
-                    {e.sets.length} sets • {isRepsOnly
-                      ? `Best: ${e.bestReps} reps`
-                      : `${e.bestE1RM.toFixed(1)} kg e1RM`}
-                  </p>
-                </div>
+            <div
+              key={e.exerciseId}
+              className={`bg-[#141416] rounded-xl border p-4 ${
+                e.isPR ? 'border-yellow-500/50' : 'border-zinc-800/50'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-1">
+                <h3 className="font-medium text-white">{e.exerciseName}</h3>
                 {e.isPR && (
-                  <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full">
-                    PR!
+                  <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">
+                    PR
                   </span>
                 )}
               </div>
 
-              {/* Progress Graph */}
+              {/* Actual sets performed */}
+              <p className="text-zinc-400">
+                {formatSets(e.sets, e.tracking)}
+              </p>
+
+              {/* PR details */}
+              {e.isPR && (
+                <p className="text-sm text-yellow-400 mt-2">
+                  {e.prType === 'reps'
+                    ? `New best: ${e.bestReps} reps`
+                    : `New e1RM: ${e.bestE1RM.toFixed(1)} kg`}
+                  {e.previousBest > 0 && (
+                    <span className="text-zinc-500 ml-1">
+                      (was {e.previousBest.toFixed(e.prType === 'reps' ? 0 : 1)})
+                    </span>
+                  )}
+                </p>
+              )}
+
+              {/* Progress Graph - collapsed by default, expandable later if needed */}
               {e.progressData.length > 1 && (
-                <div className="h-32 mt-3">
+                <div className="h-24 mt-3">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={e.progressData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
@@ -395,7 +377,7 @@ export function WorkoutSummary() {
                               <circle
                                 cx={cx}
                                 cy={cy}
-                                r={6}
+                                r={5}
                                 fill={e.isPR ? '#eab308' : '#22c55e'}
                                 stroke="white"
                                 strokeWidth={2}
@@ -406,7 +388,7 @@ export function WorkoutSummary() {
                             <circle
                               cx={cx}
                               cy={cy}
-                              r={3}
+                              r={2}
                               fill="#3b82f6"
                             />
                           );
@@ -419,11 +401,9 @@ export function WorkoutSummary() {
 
               {/* Next Workout Suggestion */}
               {e.suggestedWeight && (
-                <div className="mt-3 pt-3 border-t border-zinc-800">
-                  <p className="text-sm text-zinc-400">
-                    Next workout: <span className="text-blue-400 font-medium">{e.suggestedWeight} kg</span>
-                  </p>
-                </div>
+                <p className="text-sm text-zinc-500 mt-2">
+                  Next: <span className="text-blue-400">{e.suggestedWeight} kg</span>
+                </p>
               )}
             </div>
           );
