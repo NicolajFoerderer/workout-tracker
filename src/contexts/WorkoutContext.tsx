@@ -42,16 +42,23 @@ const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'workout_draft';
 const DEBOUNCE_MS = 300;
+const MAX_DRAFT_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function loadDraftFromStorage(): WorkoutDraft | null {
   try {
-    const stored = sessionStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored) as WorkoutDraft;
+      const draft = JSON.parse(stored) as WorkoutDraft;
+      // Discard drafts older than 7 days
+      if (Date.now() - draft.startedAt > MAX_DRAFT_AGE_MS) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return draft;
     }
   } catch (e) {
     console.error('Failed to load workout draft from storage:', e);
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
   }
   return null;
 }
@@ -68,9 +75,9 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     saveTimeoutRef.current = setTimeout(() => {
       try {
         if (draftToSave) {
-          sessionStorage.setItem(STORAGE_KEY, JSON.stringify(draftToSave));
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(draftToSave));
         } else {
-          sessionStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(STORAGE_KEY);
         }
       } catch (e) {
         console.error('Failed to save workout draft to storage:', e);
@@ -107,7 +114,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     }
     setDraftState(null);
     try {
-      sessionStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       console.error('Failed to clear workout draft from storage:', e);
     }
