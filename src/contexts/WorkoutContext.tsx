@@ -42,19 +42,12 @@ const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'workout_draft';
 const DEBOUNCE_MS = 300;
-const MAX_DRAFT_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 function loadDraftFromStorage(): WorkoutDraft | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const draft = JSON.parse(stored) as WorkoutDraft;
-      // Discard drafts older than 7 days
-      if (Date.now() - draft.startedAt > MAX_DRAFT_AGE_MS) {
-        localStorage.removeItem(STORAGE_KEY);
-        return null;
-      }
-      return draft;
+      return JSON.parse(stored) as WorkoutDraft;
     }
   } catch (e) {
     console.error('Failed to load workout draft from storage:', e);
