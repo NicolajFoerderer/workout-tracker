@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getTemplates } from '../utils/api';
+import { getTemplates, getLastWorkoutDatePerTemplate } from '../utils/api';
 import { useWorkout } from '../contexts/WorkoutContext';
 
 interface Template {
@@ -10,9 +10,24 @@ interface Template {
   items: unknown[];
 }
 
+function daysAgo(dateStr: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const d = new Date(dateStr);
+  d.setHours(0, 0, 0, 0);
+  return Math.round((today.getTime() - d.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function formatDaysAgo(days: number): string {
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  return `${days} days ago`;
+}
+
 export function Home() {
   const { draft } = useWorkout();
   const [templates, setTemplates] = useState<Template[]>([]);
+  const [lastDates, setLastDates] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,8 +38,12 @@ export function Home() {
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      const data = await getTemplates() as Template[];
+      const [data, dates] = await Promise.all([
+        getTemplates() as Promise<Template[]>,
+        getLastWorkoutDatePerTemplate(),
+      ]);
       setTemplates(data);
+      setLastDates(dates);
       setError(null);
     } catch (err) {
       setError('Failed to load templates');
@@ -33,6 +52,20 @@ export function Home() {
       setLoading(false);
     }
   };
+
+  // Determine "Next Up": template done least recently (or never)
+  const nextUpId = (() => {
+    if (templates.length === 0) return null;
+    let oldest: { id: string; days: number } | null = null;
+    for (const t of templates) {
+      const date = lastDates[t.id];
+      const days = date ? daysAgo(date) : 9999;
+      if (!oldest || days > oldest.days) {
+        oldest = { id: t.id, days };
+      }
+    }
+    return oldest?.id ?? null;
+  })();
 
   if (loading) {
     return (
@@ -61,6 +94,10 @@ export function Home() {
       <div className="space-y-3">
         {templates.map((template) => {
           const isInProgress = draft?.templateId === template.id;
+          const isNextUp = template.id === nextUpId && !isInProgress;
+          const lastDate = lastDates[template.id];
+          const days = lastDate ? daysAgo(lastDate) : null;
+
           return (
             <Link
               key={template.id}
@@ -68,16 +105,23 @@ export function Home() {
               className={`block bg-[#141416] rounded-2xl border p-5 transition-all ${
                 isInProgress
                   ? 'border-blue-500/50 hover:border-blue-400'
+                  : isNextUp
+                  ? 'border-green-500/50 hover:border-green-400'
                   : 'border-zinc-800/50 hover:border-zinc-700'
               }`}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold text-white text-lg">{template.name}</h3>
                     {isInProgress && (
                       <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
                         In Progress
+                      </span>
+                    )}
+                    {isNextUp && (
+                      <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">
+                        Next Up 🔥
                       </span>
                     )}
                   </div>
@@ -86,9 +130,19 @@ export function Home() {
                       {template.description}
                     </p>
                   )}
-                  <p className="text-sm text-zinc-600 mt-2">
-                    {template.items.length} exercises
-                  </p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <p className="text-sm text-zinc-600">
+                      {template.items.length} exercises
+                    </p>
+                    {days !== null && (
+                      <p className="text-sm text-zinc-500">
+                        Last: {formatDaysAgo(days)}
+                      </p>
+                    )}
+                    {days === null && (
+                      <p className="text-sm text-zinc-600 italic">Never done</p>
+                    )}
+                  </div>
                 </div>
                 <span className="text-zinc-600 text-xl">→</span>
               </div>

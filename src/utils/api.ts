@@ -383,6 +383,23 @@ export async function updateExerciseLog(id: string, data: { sets: Array<{ set_in
   return log;
 }
 
+export async function getLastWorkoutDatePerTemplate(): Promise<Record<string, string>> {
+  const { data, error } = await supabase
+    .from('workout_logs')
+    .select('template_id, date')
+    .order('date', { ascending: false });
+
+  if (error) throw new Error(error.message);
+
+  const result: Record<string, string> = {};
+  for (const log of data) {
+    if (log.template_id && !result[log.template_id]) {
+      result[log.template_id] = log.date;
+    }
+  }
+  return result;
+}
+
 export async function deleteWorkoutLog(id: string) {
   const { error } = await supabase
     .from('workout_logs')
