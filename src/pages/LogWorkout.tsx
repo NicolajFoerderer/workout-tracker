@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getTemplateById, createWorkoutLog, getLastExerciseSets } from '../utils/api';
+import { getTemplateById, createWorkoutLog, getLastExerciseSets, getExercises } from '../utils/api';
 import { useWorkout, type ExerciseInput } from '../contexts/WorkoutContext';
 import { calculateSuggestedWeight, formatWeight } from '../utils/weightSuggestion';
 
@@ -27,6 +27,14 @@ interface Template {
   items: TemplateItem[];
 }
 
+interface Exercise {
+  id: string;
+  name: string;
+  category: string;
+  equipment: Equipment;
+  default_tracking: 'load_reps' | 'reps_only' | 'duration';
+}
+
 export function LogWorkout() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
@@ -36,6 +44,14 @@ export function LogWorkout() {
   const [loading, setLoading] = useState(true);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const initializedForTemplateRef = useRef<string | null>(null);
+
+  // Exercise picker state
+  const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'add' | 'swap'>('add');
+  const [swapIndex, setSwapIndex] = useState<number | null>(null);
+  const [allExercises, setAllExercises] = useState<Exercise[]>([]);
+  const [exerciseSearch, setExerciseSearch] = useState('');
+  const [loadingExercises, setLoadingExercises] = useState(false);
 
   // Derive exerciseInputs and workoutDate from draft
   const exerciseInputs = draft?.exerciseInputs ?? [];
@@ -205,6 +221,98 @@ export function LogWorkout() {
     }
   };
 
+  // Exercise picker handlers
+  const openPickerForAdd = async () => {
+    setPickerMode('add');
+    setSwapIndex(null);
+    setExerciseSearch('');
+    setShowExercisePicker(true);
+    if (allExercises.length === 0) {
+      setLoadingExercises(true);
+      try {
+        const exercises = await getExercises() as Exercise[];
+        setAllExercises(exercises);
+      } catch (error) {
+        console.error('Failed to load exercises:', error);
+      } finally {
+        setLoadingExercises(false);
+      }
+    }
+  };
+
+  const openPickerForSwap = async (exerciseIndex: number) => {
+    setPickerMode('swap');
+    setSwapIndex(exerciseIndex);
+    setExerciseSearch('');
+    setShowExercisePicker(true);
+    if (allExercises.length === 0) {
+      setLoadingExercises(true);
+      try {
+        const exercises = await getExercises() as Exercise[];
+        setAllExercises(exercises);
+      } catch (error) {
+        console.error('Failed to load exercises:', error);
+      } finally {
+        setLoadingExercises(false);
+      }
+    }
+  };
+
+  const closePicker = () => {
+    setShowExercisePicker(false);
+    setExerciseSearch('');
+  };
+
+  const handleExerciseSelect = async (exercise: Exercise) => {
+    setShowExercisePicker(false);
+    setExerciseSearch('');
+
+    if (pickerMode === 'add') {
+      // Fetch previous sets for the new exercise
+      const previousData = await getLastExerciseSets([exercise.id]);
+      const previousSets = previousData[exercise.id];
+      const suggestion = calculateSuggestedWeight(previousSets, 8, exercise.equipment);
+      const suggestedWeight = suggestion ? formatWeight(suggestion.weight) : '';
+
+      const newExercise: ExerciseInput = {
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        equipment: exercise.equipment,
+        tracking: exercise.default_tracking,
+        targetSets: 3,
+        targetReps: '8',
+        sets: Array.from({ length: 3 }, () => ({ weight: suggestedWeight, reps: '' })),
+        previousSets,
+      };
+
+      updateExerciseInputs([...exerciseInputs, newExercise]);
+    } else if (pickerMode === 'swap' && swapIndex !== null) {
+      // Fetch previous sets for the new exercise
+      const previousData = await getLastExerciseSets([exercise.id]);
+      const previousSets = previousData[exercise.id];
+      const currentSets = exerciseInputs[swapIndex].sets;
+      const targetReps = parseInt(exerciseInputs[swapIndex].targetReps, 10) || 8;
+      const suggestion = calculateSuggestedWeight(previousSets, targetReps, exercise.equipment);
+      const suggestedWeight = suggestion ? formatWeight(suggestion.weight) : '';
+
+      const updated = [...exerciseInputs];
+      updated[swapIndex] = {
+        ...updated[swapIndex],
+        exerciseId: exercise.id,
+        exerciseName: exercise.name,
+        equipment: exercise.equipment,
+        tracking: exercise.default_tracking,
+        sets: currentSets.map(() => ({ weight: suggestedWeight, reps: '' })),
+        previousSets,
+      };
+      updateExerciseInputs(updated);
+    }
+  };
+
+  const filteredExercises = allExercises.filter(ex =>
+    ex.name.toLowerCase().includes(exerciseSearch.toLowerCase())
+  );
+
   const handleSave = async () => {
     if (!template) return;
 
@@ -319,7 +427,15 @@ export function LogWorkout() {
             className="bg-[#141416] rounded-2xl border border-zinc-800/50 p-4"
           >
             <div className="mb-3">
-              <h3 className="font-medium text-white">{exercise.exerciseName}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-white">{exercise.exerciseName}</h3>
+                <button
+                  onClick={() => openPickerForSwap(exerciseIndex)}
+                  className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors px-2 py-1 rounded-lg hover:bg-zinc-800/50"
+                >
+                  ⇄ swap
+                </button>
+              </div>
               <p className="text-sm text-zinc-500">
                 Target: {exercise.targetSets} x {exercise.targetReps}
                 {exercise.targetRir !== undefined && ` @ RIR ${exercise.targetRir}`}
@@ -402,6 +518,14 @@ export function LogWorkout() {
             </button>
           </div>
         ))}
+
+        {/* Add Exercise Button */}
+        <button
+          onClick={openPickerForAdd}
+          className="w-full py-3 rounded-2xl border border-dashed border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-500 transition-colors text-sm font-medium"
+        >
+          + Add Exercise
+        </button>
       </div>
 
       <div className="fixed bottom-[calc(52px+env(safe-area-inset-bottom))] left-0 right-0 bg-[#0a0a0b]/80 backdrop-blur-lg py-3 px-4">
@@ -415,6 +539,60 @@ export function LogWorkout() {
         </button>
         </div>
       </div>
+
+      {/* Exercise Picker Modal */}
+      {showExercisePicker && (
+        <div className="fixed inset-0 z-50 bg-[#0a0a0b] flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 pt-safe pt-4 pb-3 border-b border-zinc-800/50">
+            <h2 className="text-lg font-semibold text-white">
+              {pickerMode === 'add' ? 'Add Exercise' : 'Swap Exercise'}
+            </h2>
+            <button
+              onClick={closePicker}
+              className="text-zinc-400 hover:text-white transition-colors text-2xl leading-none"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="px-4 py-3 border-b border-zinc-800/50">
+            <input
+              type="text"
+              value={exerciseSearch}
+              onChange={(e) => setExerciseSearch(e.target.value)}
+              placeholder="Search exercises..."
+              autoFocus
+              className="w-full px-4 py-2.5 bg-[#141416] border border-zinc-800 rounded-xl text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-600 transition-colors"
+            />
+          </div>
+
+          {/* Exercise List */}
+          <div className="flex-1 overflow-y-auto px-4 py-2">
+            {loadingExercises ? (
+              <div className="text-center py-8 text-zinc-500">Loading exercises...</div>
+            ) : filteredExercises.length === 0 ? (
+              <div className="text-center py-8 text-zinc-500">No exercises found</div>
+            ) : (
+              <div className="space-y-1 pb-safe pb-4">
+                {filteredExercises.map((exercise) => (
+                  <button
+                    key={exercise.id}
+                    onClick={() => handleExerciseSelect(exercise)}
+                    className="w-full text-left px-4 py-3 rounded-xl bg-[#141416] hover:bg-[#1c1c1f] border border-zinc-800/50 hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="font-medium text-white text-sm">{exercise.name}</div>
+                    <div className="text-xs text-zinc-500 mt-0.5">
+                      {exercise.category} · {exercise.equipment}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
