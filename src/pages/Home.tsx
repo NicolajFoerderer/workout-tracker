@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getTemplates, getLastWorkoutDatePerTemplate } from '../utils/api';
 import { useWorkout } from '../contexts/WorkoutContext';
+import {
+  getActiveTemplateIds,
+  setActiveTemplateIds,
+  isTemplateActive,
+} from '../utils/activeTemplates';
 
 interface Template {
   id: string;
@@ -30,8 +35,11 @@ export function Home() {
   const [lastDates, setLastDates] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeIds, setActiveIds] = useState<Set<string> | null>(null);
+  const [manageOpen, setManageOpen] = useState(false);
 
   useEffect(() => {
+    setActiveIds(getActiveTemplateIds());
     loadTemplates();
   }, []);
 
@@ -53,11 +61,35 @@ export function Home() {
     }
   };
 
-  // Determine "Next Up": template done least recently (or never)
+  const toggleTemplate = (templateId: string) => {
+    setActiveIds((prev) => {
+      // If prev is null, all templates are currently active — initialise from full list
+      const base: Set<string> =
+        prev === null
+          ? new Set(templates.map((t) => t.id))
+          : new Set(prev);
+
+      if (base.has(templateId)) {
+        base.delete(templateId);
+      } else {
+        base.add(templateId);
+      }
+
+      setActiveTemplateIds(base);
+      return new Set(base);
+    });
+  };
+
+  // Only active templates shown on the main list
+  const visibleTemplates = templates.filter((t) =>
+    isTemplateActive(t.id, activeIds)
+  );
+
+  // Determine "Next Up": template done least recently (or never), among active only
   const nextUpId = (() => {
-    if (templates.length === 0) return null;
+    if (visibleTemplates.length === 0) return null;
     let oldest: { id: string; days: number } | null = null;
-    for (const t of templates) {
+    for (const t of visibleTemplates) {
       const date = lastDates[t.id];
       const days = date ? daysAgo(date) : 9999;
       if (!oldest || days > oldest.days) {
@@ -89,10 +121,64 @@ export function Home() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-8">Start Workout</h1>
+      {/* Header row */}
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">Start Workout</h1>
+        <button
+          onClick={() => setManageOpen((o) => !o)}
+          className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+        >
+          {manageOpen ? 'Done' : 'Manage'}
+        </button>
+      </div>
 
+      {/* Management panel */}
+      {manageOpen && (
+        <div className="mb-6 bg-[#141416] rounded-2xl border border-zinc-800/50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800/50">
+            <span className="text-sm font-medium text-zinc-300">
+              Manage active workouts
+            </span>
+            <button
+              onClick={() => setManageOpen(false)}
+              className="text-zinc-500 hover:text-zinc-300 text-lg leading-none"
+            >
+              ×
+            </button>
+          </div>
+          <div className="divide-y divide-zinc-800/30">
+            {templates.map((template) => {
+              const active = isTemplateActive(template.id, activeIds);
+              return (
+                <div
+                  key={template.id}
+                  className="flex items-center justify-between px-4 py-3"
+                >
+                  <span className="text-sm text-white">{template.name}</span>
+                  {/* Pill toggle */}
+                  <button
+                    onClick={() => toggleTemplate(template.id)}
+                    className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ${
+                      active ? 'bg-blue-500' : 'bg-zinc-700'
+                    }`}
+                    aria-label={active ? 'Deactivate' : 'Activate'}
+                  >
+                    <div
+                      className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        active ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Template list (active only) */}
       <div className="space-y-3">
-        {templates.map((template) => {
+        {visibleTemplates.map((template) => {
           const isInProgress = draft?.templateId === template.id;
           const isNextUp = template.id === nextUpId && !isInProgress;
           const lastDate = lastDates[template.id];
@@ -150,6 +236,18 @@ export function Home() {
           );
         })}
       </div>
+
+      {visibleTemplates.length === 0 && templates.length > 0 && (
+        <div className="text-center py-12 text-zinc-500">
+          <p className="mb-2">All templates are hidden.</p>
+          <button
+            onClick={() => setManageOpen(true)}
+            className="text-blue-400 hover:text-blue-300 text-sm"
+          >
+            Manage active workouts
+          </button>
+        </div>
+      )}
 
       {templates.length === 0 && (
         <div className="text-center py-12 text-zinc-500">
