@@ -17,7 +17,6 @@ export interface ExerciseInput {
   tracking: 'load_reps' | 'reps_only' | 'duration';
   targetSets: number;
   targetReps: string;
-  targetRir?: number;
   sets: SetInput[];
   previousSets?: PreviousSet[];
 }

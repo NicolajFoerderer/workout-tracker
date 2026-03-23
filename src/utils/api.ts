@@ -155,7 +155,6 @@ export async function createTemplate(templateData: {
     exercise_id: string;
     target_sets: number;
     target_reps: string;
-    target_rir?: number;
     tracking: string;
   }>;
 }) {
@@ -176,7 +175,6 @@ export async function createTemplate(templateData: {
       order_index: index + 1,
       target_sets: item.target_sets,
       target_reps: item.target_reps,
-      target_rir: item.target_rir,
       tracking: item.tracking
     }));
 
@@ -197,7 +195,6 @@ export async function updateTemplate(id: string, templateData: {
     exercise_id: string;
     target_sets: number;
     target_reps: string;
-    target_rir?: number;
     tracking: string;
   }>;
 }) {
@@ -224,7 +221,6 @@ export async function updateTemplate(id: string, templateData: {
       order_index: index + 1,
       target_sets: item.target_sets,
       target_reps: item.target_reps,
-      target_rir: item.target_rir,
       tracking: item.tracking
     }));
 

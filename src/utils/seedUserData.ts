@@ -27,12 +27,12 @@ const pushTemplate = {
   name: 'Push',
   description: 'Upper body push focus',
   items: [
-    { exerciseName: 'Barbell Bench Press', sets: 3, reps: '6', rir: 2, tracking: 'load_reps' },
-    { exerciseName: 'Standing Overhead Press', sets: 2, reps: '8', rir: 2, tracking: 'load_reps' },
-    { exerciseName: 'Cable Lateral Raise', sets: 4, reps: '15', rir: 0, tracking: 'load_reps' },
-    { exerciseName: 'Triceps Pushdown', sets: 3, reps: '10', rir: 0, tracking: 'load_reps' },
-    { exerciseName: 'Hanging Knee Raise', sets: 3, reps: '12', rir: 1, tracking: 'reps_only' },
-    { exerciseName: 'Cable Woodchopper', sets: 2, reps: '12 / side', rir: 1, tracking: 'load_reps' },
+    { exerciseName: 'Barbell Bench Press', sets: 3, reps: '6', tracking: 'load_reps' },
+    { exerciseName: 'Standing Overhead Press', sets: 2, reps: '8', tracking: 'load_reps' },
+    { exerciseName: 'Cable Lateral Raise', sets: 4, reps: '15', tracking: 'load_reps' },
+    { exerciseName: 'Triceps Pushdown', sets: 3, reps: '10', tracking: 'load_reps' },
+    { exerciseName: 'Hanging Knee Raise', sets: 3, reps: '12', tracking: 'reps_only' },
+    { exerciseName: 'Cable Woodchopper', sets: 2, reps: '12 / side', tracking: 'load_reps' },
   ],
 };
 
@@ -40,12 +40,12 @@ const pullTemplate = {
   name: 'Pull',
   description: 'Upper body pull focus',
   items: [
-    { exerciseName: 'Pull-ups', sets: 3, reps: '6', rir: 2, tracking: 'reps_only' },
-    { exerciseName: 'Chest Supported Row', sets: 3, reps: '8', rir: 2, tracking: 'load_reps' },
-    { exerciseName: 'Incline Dumbbell Curl', sets: 3, reps: '10', rir: 0, tracking: 'load_reps' },
-    { exerciseName: 'Hammer Curl', sets: 2, reps: '12', rir: 0, tracking: 'load_reps' },
-    { exerciseName: 'Cable Crunch', sets: 3, reps: '12', rir: 1, tracking: 'load_reps' },
-    { exerciseName: 'Dumbbell Side Bend', sets: 2, reps: '15 / side', rir: 1, tracking: 'load_reps' },
+    { exerciseName: 'Pull-ups', sets: 3, reps: '6', tracking: 'reps_only' },
+    { exerciseName: 'Chest Supported Row', sets: 3, reps: '8', tracking: 'load_reps' },
+    { exerciseName: 'Incline Dumbbell Curl', sets: 3, reps: '10', tracking: 'load_reps' },
+    { exerciseName: 'Hammer Curl', sets: 2, reps: '12', tracking: 'load_reps' },
+    { exerciseName: 'Cable Crunch', sets: 3, reps: '12', tracking: 'load_reps' },
+    { exerciseName: 'Dumbbell Side Bend', sets: 2, reps: '15 / side', tracking: 'load_reps' },
   ],
 };
 
@@ -113,7 +113,6 @@ export async function seedUserData(userId: string): Promise<void> {
     order_index: index + 1,
     target_sets: item.sets,
     target_reps: item.reps,
-    target_rir: item.rir,
     tracking: item.tracking,
   }));
 
@@ -144,7 +143,6 @@ export async function seedUserData(userId: string): Promise<void> {
     order_index: index + 1,
     target_sets: item.sets,
     target_reps: item.reps,
-    target_rir: item.rir,
     tracking: item.tracking,
   }));
 

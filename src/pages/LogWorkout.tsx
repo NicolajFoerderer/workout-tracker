@@ -17,7 +17,6 @@ interface TemplateItem {
   exercise_equipment: Equipment;
   target_sets: number;
   target_reps: string;
-  target_rir?: number;
   tracking: 'load_reps' | 'reps_only' | 'duration';
 }
 
@@ -107,7 +106,6 @@ export function LogWorkout() {
             tracking: item.tracking,
             targetSets: item.target_sets,
             targetReps: item.target_reps,
-            targetRir: item.target_rir,
             sets,
             previousSets,
           };
@@ -159,7 +157,6 @@ export function LogWorkout() {
           tracking: item.tracking,
           targetSets: item.target_sets,
           targetReps: item.target_reps,
-          targetRir: item.target_rir,
           sets,
           previousSets,
         };
@@ -438,7 +435,6 @@ export function LogWorkout() {
               </div>
               <p className="text-sm text-zinc-500">
                 Target: {exercise.targetSets} x {exercise.targetReps}
-                {exercise.targetRir !== undefined && ` @ RIR ${exercise.targetRir}`}
               </p>
               {exercise.previousSets && exercise.previousSets.length > 0 && (
                 <p className="text-sm text-zinc-600 mt-1">

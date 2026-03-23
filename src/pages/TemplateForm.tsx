@@ -21,7 +21,6 @@ interface ItemFormData {
   exerciseId: string;
   targetSets: string;
   targetReps: string;
-  targetRir: string;
   tracking: TrackingType;
 }
 
@@ -34,7 +33,6 @@ interface TemplateData {
     exercise_id: string;
     target_sets: number;
     target_reps: string;
-    target_rir?: number;
     tracking: TrackingType;
   }>;
 }
@@ -67,7 +65,6 @@ export function TemplateForm() {
                 exerciseId: item.exercise_id,
                 targetSets: item.target_sets.toString(),
                 targetReps: item.target_reps,
-                targetRir: item.target_rir?.toString() || '',
                 tracking: item.tracking,
               }))
             );
@@ -97,7 +94,6 @@ export function TemplateForm() {
         exerciseId: defaultExercise.id,
         targetSets: '3',
         targetReps: '10',
-        targetRir: '',
         tracking: defaultExercise.default_tracking,
       },
     ]);
@@ -156,7 +152,6 @@ export function TemplateForm() {
       exercise_id: item.exerciseId,
       target_sets: parseInt(item.targetSets, 10) || 1,
       target_reps: item.targetReps || '1',
-      target_rir: item.targetRir ? parseInt(item.targetRir, 10) : undefined,
       tracking: item.tracking,
     }));
 
@@ -290,7 +285,7 @@ export function TemplateForm() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-zinc-400 mb-1">
                       Sets
@@ -313,19 +308,6 @@ export function TemplateForm() {
                       onChange={(e) => updateItem(index, 'targetReps', e.target.value)}
                       className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
                       placeholder="e.g., 8-12"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-400 mb-1">
-                      RIR
-                    </label>
-                    <input
-                      type="number"
-                      value={item.targetRir}
-                      onChange={(e) => updateItem(index, 'targetRir', e.target.value)}
-                      className="w-full px-3 py-2 bg-[#1c1c1f] border border-zinc-800 rounded-xl text-white placeholder-zinc-600 focus:outline-none focus:border-zinc-600 transition-colors"
-                      min="0"
-                      placeholder="opt."
                     />
                   </div>
                 </div>

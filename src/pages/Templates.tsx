@@ -9,7 +9,6 @@ interface TemplateItem {
   exercise_name: string;
   target_sets: number;
   target_reps: string;
-  target_rir?: number;
 }
 
 interface Template {
@@ -140,9 +139,6 @@ export function Templates() {
                   <div key={item.id} className="text-sm text-zinc-400">
                     <span className="text-zinc-600 mr-2">{index + 1}.</span>
                     {item.exercise_name} - {item.target_sets} × {item.target_reps}
-                    {item.target_rir !== undefined && item.target_rir !== null && (
-                      <span className="text-zinc-600"> @ RIR {item.target_rir}</span>
-                    )}
                   </div>
                 ))}
               </div>
