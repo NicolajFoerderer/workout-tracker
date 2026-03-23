@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getTemplates, deleteTemplate } from '../utils/api';
+import { getTemplates, deleteTemplate, createTemplate, getExercises } from '../utils/api';
 import { getActiveTemplateIds, setActiveTemplateIds, isTemplateActive } from '../utils/activeTemplates';
 
 interface TemplateItem {
@@ -21,6 +21,7 @@ interface Template {
 export function Templates() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
   const [activeIds, setActiveIds] = useState<Set<string> | null>(null);
   const navigate = useNavigate();
 
@@ -56,6 +57,78 @@ export function Templates() {
     });
   };
 
+  const seedV2Templates = async () => {
+    if (!confirm('Create "Push v2" and "Pull v2" templates?')) return;
+    setSeeding(true);
+    try {
+      const { supabase } = await import('../utils/supabase');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in');
+
+      // Get existing exercises
+      const exercises = await getExercises() as Array<{ id: string; name: string }>;
+      const byName = (name: string) => exercises.find(e => e.name.toLowerCase() === name.toLowerCase());
+
+      // Create missing exercises
+      const newExercises: Array<{ name: string; category: string; equipment: string; default_tracking: string }> = [
+        { name: 'Cable Curl', category: 'isolation', equipment: 'cable', default_tracking: 'load_reps' },
+        { name: 'Weighted Dips', category: 'compound', equipment: 'bodyweight', default_tracking: 'load_reps' },
+        { name: 'Seated Dumbbell Press', category: 'compound', equipment: 'dumbbell', default_tracking: 'load_reps' },
+        { name: 'Overhead Triceps Extension', category: 'isolation', equipment: 'dumbbell', default_tracking: 'load_reps' },
+      ];
+      for (const ex of newExercises) {
+        if (!byName(ex.name)) {
+          const { error } = await supabase.from('exercises').insert({ ...ex, user_id: user.id, aliases: [] });
+          if (error) throw new Error(`Failed to create exercise ${ex.name}: ${error.message}`);
+        }
+      }
+
+      // Re-fetch exercises after creating new ones
+      const allExercises = await getExercises() as Array<{ id: string; name: string }>;
+      const getId = (name: string) => {
+        const ex = allExercises.find(e => e.name.toLowerCase() === name.toLowerCase());
+        if (!ex) throw new Error(`Exercise not found: ${name}`);
+        return ex.id;
+      };
+
+      // Create Pull v2
+      await createTemplate({
+        name: 'Pull v2',
+        description: 'Arms & back — high bicep volume',
+        items: [
+          { exercise_id: getId('Pull-ups'), target_sets: 4, target_reps: '6', tracking: 'reps_only' },
+          { exercise_id: getId('Chest Supported Row'), target_sets: 3, target_reps: '10', tracking: 'load_reps' },
+          { exercise_id: getId('Incline Dumbbell Curl'), target_sets: 4, target_reps: '10', tracking: 'load_reps' },
+          { exercise_id: getId('Cable Curl'), target_sets: 3, target_reps: '12', tracking: 'load_reps' },
+          { exercise_id: getId('Hammer Curl'), target_sets: 3, target_reps: '12', tracking: 'load_reps' },
+          { exercise_id: getId('Cable Crunch'), target_sets: 3, target_reps: '15', tracking: 'load_reps' },
+        ],
+      });
+
+      // Create Push v2
+      await createTemplate({
+        name: 'Push v2',
+        description: 'Shoulders, triceps & chest',
+        items: [
+          { exercise_id: getId('Weighted Dips'), target_sets: 3, target_reps: '8', tracking: 'load_reps' },
+          { exercise_id: getId('Seated Dumbbell Press'), target_sets: 3, target_reps: '10', tracking: 'load_reps' },
+          { exercise_id: getId('Cable Lateral Raise'), target_sets: 4, target_reps: '15', tracking: 'load_reps' },
+          { exercise_id: getId('Overhead Triceps Extension'), target_sets: 3, target_reps: '12', tracking: 'load_reps' },
+          { exercise_id: getId('Triceps Pushdown'), target_sets: 3, target_reps: '12', tracking: 'load_reps' },
+          { exercise_id: getId('Hanging Knee Raise'), target_sets: 3, target_reps: '15', tracking: 'reps_only' },
+        ],
+      });
+
+      await loadData();
+      alert('Push v2 and Pull v2 created! ✅');
+    } catch (err) {
+      console.error(err);
+      alert(`Error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm('Delete this workout template?')) {
       try {
@@ -76,12 +149,21 @@ export function Templates() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Templates</h1>
-        <button
-          onClick={() => navigate('/templates/new')}
-          className="bg-white text-black px-4 py-2 rounded-xl text-sm font-medium hover:bg-zinc-200 transition-colors"
-        >
-          + New
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={seedV2Templates}
+            disabled={seeding}
+            className="bg-zinc-700 text-zinc-200 px-3 py-2 rounded-xl text-sm font-medium hover:bg-zinc-600 disabled:opacity-50 transition-colors"
+          >
+            {seeding ? '...' : '+ v2'}
+          </button>
+          <button
+            onClick={() => navigate('/templates/new')}
+            className="bg-white text-black px-4 py-2 rounded-xl text-sm font-medium hover:bg-zinc-200 transition-colors"
+          >
+            + New
+          </button>
+        </div>
       </div>
 
       {templates.length === 0 ? (
